@@ -1,0 +1,7 @@
+{
+  "name": "NeuroPlan OS",
+  "description": "A unified productivity suite combining OKR planning with neuro-optimized focus tools.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

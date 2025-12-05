@@ -1,0 +1,8 @@
+{
+  "appId": "com.neuroplan.os",
+  "appName": "NeuroPlan OS",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}
