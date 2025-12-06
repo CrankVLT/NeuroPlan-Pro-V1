@@ -5,9 +5,10 @@ import { FlowModule } from './components/FlowModule';
 import { ScienceModule } from './components/ScienceModule';
 import { SettingsModule } from './components/SettingsModule';
 import { CortexModule } from './components/CortexModule';
+import { WelcomeModule } from './components/WelcomeModule';
 
 const App: React.FC = () => {
-    const [view, setView] = useState<ViewState>('dashboard');
+    const [view, setView] = useState<ViewState>('welcome');
     const [booting, setBooting] = useState(true);
     
     // Neural Battery State
@@ -79,6 +80,7 @@ const App: React.FC = () => {
                 </div>
                 
                 <nav className="flex-1 px-4 space-y-2">
+                    <NavBtn label="Bienvenido" active={view === 'welcome'} onClick={() => setView('welcome')} icon="👋" />
                     <NavBtn label="Planificación" active={view === 'dashboard'} onClick={() => setView('dashboard')} icon="📊" />
                     <NavBtn label="Flow Tools" active={view === 'flow'} onClick={() => setView('flow')} icon="🧠" />
                     <NavBtn label="Cortex (Estudio)" active={view === 'cortex'} onClick={() => setView('cortex')} icon="🎓" />
@@ -119,6 +121,7 @@ const App: React.FC = () => {
 
                 <div className="max-w-4xl mx-auto p-4 md:p-12">
                     <div className="animate-[fadeIn_0.5s_ease-out]">
+                        {view === 'welcome' && <WelcomeModule onStart={() => setView('dashboard')} />}
                         {view === 'dashboard' && <PlanningModule />}
                         {view === 'flow' && <FlowModule onSessionComplete={updateBattery} />}
                         {view === 'cortex' && <CortexModule />}

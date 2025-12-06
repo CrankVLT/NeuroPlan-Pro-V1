@@ -1,261 +1,345 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAudio } from '../hooks/useAudio';
+import { FlowSessionType } from '../types';
+import { ActiveSession } from './flow/ActiveSession';
 
-interface StudyStep {
+// --- GAMING ROUTINES (MOVED FROM FLOW) ---
+const GAMER_ROUTINES = [
+    {
+        title: "Inmersión Acción (FPS/Horror)",
+        desc: "Simula el estado de alerta del personaje. Apaga el análisis, enciende el instinto.",
+        steps: ['calm', 'gaze', 'active']
+    },
+    {
+        title: "Inmersión Rol (RPG/Open World)",
+        desc: "Entra en el mundo con calma y presencia. Ideal para juegos de historia.",
+        steps: ['calm', 'gaze', 'panoramic']
+    },
+    {
+        title: "Tilt Reset / Frustración",
+        desc: "Úsalo cuando mueras repetidamente o te pierdas. Baja la ira, mantén el foco.",
+        steps: ['calm', 'panoramic']
+    }
+];
+
+// --- STUDY FLOW TYPES & DATA ---
+interface StudyPhase {
     id: number;
     title: string;
     description: string;
-    action: string;
-    duration: number; // in minutes (default)
-    phase: 'warmup' | 'immersion' | 'execution';
+    steps: StudyStep[];
 }
 
-const STUDY_FLOW: StudyStep[] = [
-    // FASE 1: Calentamiento
+interface StudyStep {
+    id: string;
+    label: string;
+    instruction?: string;
+    type: 'checkbox' | 'timer' | 'input';
+    timerType?: FlowSessionType;
+    duration?: number; // minutes for timer
+}
+
+const DEEP_STUDY_FLOW: StudyPhase[] = [
+    {
+        id: 0,
+        title: "Fase 0: Configuración",
+        description: "Checklist manual de pre-requisitos.",
+        steps: [
+            { id: 's0_1', label: "Fuente cargada en NotebookLM", type: 'checkbox' },
+            { id: 's0_2', label: "Chat como 'Guía de aprendizaje'", type: 'checkbox' },
+            { id: 's0_3', label: "Audio Overview generado", instruction: "Prompt: Enfócate en procesos logísticos y legales, omite historia", type: 'checkbox' },
+            { id: 's0_4', label: "Video Overview generado (Opcional)", type: 'checkbox' },
+            { id: 's0_5', label: "Infografía generada", type: 'checkbox' },
+            { id: 's0_6', label: "Mapa Mental generado", type: 'checkbox' },
+            { id: 's0_7', label: "Guía de Estudio generada", type: 'checkbox' },
+            { id: 's0_8', label: "Flashcards generadas", instruction: "Prompt: Genera tarjetas solo sobre el vocabulario técnico", type: 'checkbox' },
+            { id: 's0_9', label: "Cuestionario generado", instruction: "Prompt: Genera preguntas sobre vocabulario y conceptos clave", type: 'checkbox' }
+        ]
+    },
     {
         id: 1,
-        title: "El Podcast",
-        description: "Audio Overview pasivo para engañar al cerebro y entrar en contexto.",
-        action: "Sube tu archivo a NotebookLM, genera el 'Resumen de Audio' y escucha con los ojos cerrados.",
-        duration: 10,
-        phase: 'warmup'
+        title: "Fase 1: Neuro-Priming",
+        description: "Gatillo biológico de entrada.",
+        steps: [
+            { id: 's1_1', label: "Enfoque Visual (45s)", type: 'timer', timerType: 'gaze' },
+            { id: 's1_2', label: "Activación (3 min)", type: 'timer', timerType: 'active' }
+        ]
     },
     {
         id: 2,
-        title: "Mapa de Terreno",
-        description: "Visualización de la estructura y jerarquía de conceptos.",
-        action: "Pide a NotebookLM: 'Genera un mapa mental detallado jerarquizando conceptos'. Analiza el esquema.",
-        duration: 5,
-        phase: 'warmup'
+        title: "Fase 2: Ingesta Pasiva",
+        description: "Consumo de baja fricción.",
+        steps: [
+            { id: 's2_1', label: "Audio Overview Escuchado", type: 'checkbox' },
+            { id: 's2_2', label: "Video Overview Visto", type: 'checkbox' }
+        ]
     },
-    // FASE 2: Inmersión
     {
         id: 3,
-        title: "La Brújula",
-        description: "Guía de estudio para separar lo importante de la paja.",
-        action: "En NotebookLM selecciona 'Guía de Estudio'. Lee esto PRIMERO, antes del original.",
-        duration: 10,
-        phase: 'immersion'
+        title: "Fase 3: Estructuración Activa",
+        description: "Deep Work: Procesamiento y decodificación.",
+        steps: [
+            { id: 's3_1', label: "Infografía Analizada", type: 'checkbox' },
+            { id: 's3_2', label: "Mapa Mental Procesado", instruction: "Genera notas por cada nodo en NotebookLM", type: 'checkbox' },
+            { id: 's3_3', label: "Lectura Inicial: Guía de Estudio", type: 'checkbox' },
+            { id: 's3_4', label: "Lectura Profunda: Documento Original", instruction: "Responder preguntas de la guía mientras se lee", type: 'checkbox' }
+        ]
     },
     {
         id: 4,
-        title: "La Fuente",
-        description: "Lectura enfocada del documento original para detalles finos.",
-        action: "Lee el documento original (PDF/PPT). Busca los detalles técnicos que faltaron en el resumen.",
-        duration: 45,
-        phase: 'immersion'
+        title: "Fase 4: Verificación",
+        description: "Testing Effect y Active Recall.",
+        steps: [
+            { id: 's4_1', label: "Ejercicios Originales Resueltos", type: 'checkbox' },
+            { id: 's4_2', label: "Sesión de Flashcards (Mental)", instruction: "Si fallas, anota para repaso", type: 'checkbox' },
+            { id: 's4_3', label: "Cuestionario Final (NotebookLM)", instruction: "Requiere puntaje máximo. Si falla, vuelve a leer.", type: 'checkbox' }
+        ]
     },
-    // FASE 3: Ejecución
     {
         id: 5,
-        title: "Práctica Real",
-        description: "Validación de teoría con casos prácticos.",
-        action: "Resuelve los ejercicios de tu material (IPLACEX/Libro). Intenta no mirar apuntes.",
-        duration: 20,
-        phase: 'execution'
-    },
-    {
-        id: 6,
-        title: "El Martillo",
-        description: "Memorización a fuerza bruta de datos duros.",
-        action: "Pide a NotebookLM: 'Crea flashcards de [Conceptos que fallaste]'. Repásalas.",
-        duration: 10,
-        phase: 'execution'
-    },
-    {
-        id: 7,
-        title: "Examen Final",
-        description: "Ticket de salida para validar aprendizaje.",
-        action: "Pide un cuestionario de selección múltiple sobre todo el texto en NotebookLM. Responde.",
-        duration: 10,
-        phase: 'execution'
+        title: "Fase 5: Protocolo de Cierre",
+        description: "Consolidación neuroplástica.",
+        steps: [
+            { id: 's5_1', label: "Visión Panorámica (2 min)", type: 'timer', timerType: 'panoramic' },
+            { id: 's5_2', label: "Respiración Fisiológica (5 min)", type: 'timer', timerType: 'calm' },
+            { id: 's5_3', label: "NSDR (20 min)", type: 'timer', timerType: 'nsdr' }
+        ]
     }
 ];
 
 export const CortexModule: React.FC = () => {
-    const audio = useAudio();
-    const [activeStep, setActiveStep] = useState<number | null>(null);
-    const [timeLeft, setTimeLeft] = useState(0);
-    const [isRunning, setIsRunning] = useState(false);
-    const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+    const [tab, setTab] = useState<'study' | 'gaming'>('study');
 
-    const timerRef = useRef<number | null>(null);
+    // Study State
+    const [studyProgress, setStudyProgress] = useState<string[]>([]);
+    const [activeTimer, setActiveTimer] = useState<{type: FlowSessionType, duration?: number} | null>(null);
 
-    // Timer Logic
+    // Default configs for breathing sessions (Copied from FlowModule to ensure ActiveSession works)
+    const DEFAULT_CONFIGS: Record<string, any> = {
+        active: { inhale: 1.5, exhale: 1.0, hold1: 0, hold2: 0, cycles: 30 },
+        tummo: { inhale: 1.5, exhale: 1.0, hold1: 0, hold2: 15, cycles: 30 },
+        calm: { inhale: 4, hold1: 7, exhale: 8, hold2: 0, cycles: 15, double: true },
+        panoramic: { duration: 120 },
+        gaze: { duration: 45 },
+        focus: { duration: 90 },
+        nsdr: { duration: 20 }
+    };
+
     useEffect(() => {
-        if (isRunning && timeLeft > 0) {
-            timerRef.current = window.setInterval(() => {
-                setTimeLeft(prev => {
-                    if (prev <= 1) {
-                        audio.playBeep();
-                        setIsRunning(false);
-                        return 0;
-                    }
-                    return prev - 1;
-                });
-            }, 1000);
-        } else if (timeLeft === 0) {
-            setIsRunning(false);
-            if(timerRef.current) clearInterval(timerRef.current);
+        const saved = localStorage.getItem('cortex_study_flow');
+        if (saved) {
+            setStudyProgress(JSON.parse(saved));
         }
-        return () => { if (timerRef.current) clearInterval(timerRef.current); };
-    }, [isRunning, timeLeft]);
+    }, []);
 
-    const startStep = (step: StudyStep) => {
-        setActiveStep(step.id);
-        setTimeLeft(step.duration * 60);
-        setIsRunning(true);
+    useEffect(() => {
+        localStorage.setItem('cortex_study_flow', JSON.stringify(studyProgress));
+    }, [studyProgress]);
+
+    const toggleStep = (id: string) => {
+        setStudyProgress(prev =>
+            prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
+        );
     };
 
-    const toggleTimer = () => setIsRunning(!isRunning);
-
-    const completeStep = (id: number) => {
-        if (!completedSteps.includes(id)) {
-            setCompletedSteps([...completedSteps, id]);
-        }
-        setActiveStep(null);
-        setIsRunning(false);
-        audio.playBeep();
+    const isPhaseUnlocked = (phaseId: number) => {
+        if (phaseId === 0) return true;
+        // Check if previous phase steps are all done? Or just simplify logic
+        // For strict gating, we'd check all steps of phaseId - 1.
+        // Let's implement strict gating.
+        const prevPhase = DEEP_STUDY_FLOW.find(p => p.id === phaseId - 1);
+        if (!prevPhase) return true;
+        return prevPhase.steps.every(s => studyProgress.includes(s.id));
     };
 
-    const formatTime = (s: number) => {
-        const m = Math.floor(s / 60);
-        const sec = Math.floor(s % 60);
-        return `${m}:${sec < 10 ? '0' : ''}${sec}`;
+    const calculateProgress = () => {
+        const totalSteps = DEEP_STUDY_FLOW.reduce((acc, p) => acc + p.steps.length, 0);
+        return Math.round((studyProgress.length / totalSteps) * 100);
     };
 
-    const getPhaseColor = (phase: string) => {
-        if (phase === 'warmup') return 'neuro-blue';
-        if (phase === 'immersion') return 'neuro-purple';
-        return 'neuro-green';
-    };
+    if (activeTimer) {
+        // Merge default config with specific duration if present
+        const config = {
+            ...(DEFAULT_CONFIGS[activeTimer.type] || {}),
+            ...(activeTimer.duration ? { duration: activeTimer.duration } : {})
+        };
 
-    const currentStepObj = STUDY_FLOW.find(s => s.id === activeStep);
+        return (
+            <ActiveSession
+                type={activeTimer.type}
+                config={config}
+                onExit={() => setActiveTimer(null)}
+                onComplete={() => {
+                    // Find which step this was associated with to mark it complete automatically?
+                    // For simplicity, we just close it and let user check it (or we could auto-check).
+                    // Let's just close for now.
+                    setActiveTimer(null);
+                }}
+            />
+        );
+    }
 
     return (
         <div className="pb-24 animate-fadeIn">
             <h2 className="text-3xl font-black text-white mb-2">Cortex <span className="text-neuro-cyan text-sm align-top">BETA</span></h2>
-            <p className="text-slate-400 text-sm mb-6">Suite de estudio optimizada por energía. Companion para NotebookLM.</p>
+            <div className="flex border-b border-slate-800 mb-6">
+                <button
+                    onClick={() => setTab('study')}
+                    className={`px-6 py-3 text-sm font-bold border-b-2 transition-colors ${tab === 'study' ? 'border-neuro-cyan text-neuro-cyan' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
+                >
+                    DEEP STUDY FLOW
+                </button>
+                <button
+                    onClick={() => setTab('gaming')}
+                    className={`px-6 py-3 text-sm font-bold border-b-2 transition-colors ${tab === 'gaming' ? 'border-neuro-purple text-neuro-purple' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
+                >
+                    GAMING MODE
+                </button>
+            </div>
 
-            {/* Active Step Overlay */}
-            {currentStepObj && (
-                <div className="fixed inset-0 z-[100] bg-neuro-bg flex flex-col items-center justify-center p-6 animate-slideUp">
-                    <div className={`absolute top-0 left-0 w-full h-1 bg-${getPhaseColor(currentStepObj.phase)}`}></div>
-                    
-                    <div className="text-center max-w-lg w-full">
-                        <span className={`text-xs font-bold uppercase tracking-widest text-${getPhaseColor(currentStepObj.phase)} mb-4 block`}>
-                            FASE: {currentStepObj.phase.toUpperCase()}
-                        </span>
-                        <h1 className="text-4xl font-black text-white mb-6">{currentStepObj.title}</h1>
-                        
-                        <div className="glass p-6 rounded-xl border border-slate-700 mb-8 text-left">
-                            <h3 className="text-slate-300 font-bold mb-2">INSTRUCCIÓN:</h3>
-                            <p className="text-white text-lg leading-relaxed">{currentStepObj.action}</p>
-                            <div className="mt-4 pt-4 border-t border-slate-700">
-                                <span className="text-xs text-slate-500 uppercase">HERRAMIENTA REQUERIDA:</span>
-                                <div className="flex items-center gap-2 mt-1 text-neuro-cyan font-bold">
-                                    <span>🧠 NotebookLM / Material Original</span>
+            {tab === 'study' ? (
+                <div className="space-y-8 relative">
+                    {/* Overall Progress */}
+                    <div className="glass p-4 rounded-xl border border-slate-700 mb-8 sticky top-0 z-40 backdrop-blur-md">
+                        <div className="flex justify-between items-center mb-2">
+                            <span className="text-xs font-bold text-slate-400 uppercase">Progreso del Proyecto</span>
+                            <span className="text-neuro-cyan font-mono font-bold">{calculateProgress()}%</span>
+                        </div>
+                        <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+                            <div
+                                className="h-full bg-gradient-to-r from-neuro-blue to-neuro-cyan transition-all duration-1000"
+                                style={{ width: `${calculateProgress()}%` }}
+                            ></div>
+                        </div>
+                    </div>
+
+                    <div className="absolute left-[19px] top-24 bottom-0 w-0.5 bg-slate-800 z-0"></div>
+
+                    {DEEP_STUDY_FLOW.map((phase) => {
+                        const unlocked = isPhaseUnlocked(phase.id);
+                        const allDone = phase.steps.every(s => studyProgress.includes(s.id));
+
+                        return (
+                            <div key={phase.id} className={`relative z-10 transition-opacity duration-500 ${unlocked ? 'opacity-100' : 'opacity-30 blur-[2px] pointer-events-none'}`}>
+                                <div className="flex items-center gap-4 mb-4">
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border-2 shrink-0 ${allDone ? 'bg-neuro-green text-black border-neuro-green' : unlocked ? 'bg-neuro-bg text-neuro-cyan border-neuro-cyan' : 'bg-slate-900 text-slate-600 border-slate-800'}`}>
+                                        {allDone ? '✓' : phase.id}
+                                    </div>
+                                    <div>
+                                        <h3 className={`font-bold text-lg ${allDone ? 'text-neuro-green' : 'text-white'}`}>{phase.title}</h3>
+                                        <p className="text-xs text-slate-400">{phase.description}</p>
+                                    </div>
+                                </div>
+
+                                <div className="pl-14 space-y-3">
+                                    {phase.steps.map(step => {
+                                        const checked = studyProgress.includes(step.id);
+                                        return (
+                                            <div
+                                                key={step.id}
+                                                className={`p-3 rounded-lg border flex items-center gap-3 transition-colors ${checked ? 'bg-slate-900/50 border-neuro-green/30' : 'bg-slate-800/20 border-slate-700 hover:border-slate-500'}`}
+                                            >
+                                                <button 
+                                                    onClick={() => toggleStep(step.id)}
+                                                    className={`w-6 h-6 rounded border flex items-center justify-center transition-all ${checked ? 'bg-neuro-green border-neuro-green text-black' : 'bg-transparent border-slate-500 hover:border-white'}`}
+                                                >
+                                                    {checked && '✓'}
+                                                </button>
+
+                                                <div className="flex-1">
+                                                    <span className={`text-sm font-medium block ${checked ? 'text-slate-400 line-through' : 'text-slate-200'}`}>
+                                                        {step.label}
+                                                    </span>
+                                                    {step.instruction && (
+                                                        <span className="text-[10px] text-neuro-cyan block mt-1 font-mono">
+                                                            {step.instruction}
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                {step.type === 'timer' && !checked && (
+                                                    <button
+                                                        onClick={() => setActiveTimer({ type: step.timerType!, duration: step.duration })}
+                                                        className="px-3 py-1 bg-neuro-purple/20 text-neuro-purple border border-neuro-purple/50 rounded text-xs font-bold hover:bg-neuro-purple hover:text-white transition-colors"
+                                                    >
+                                                        INICIAR
+                                                    </button>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
-                        </div>
+                        );
+                    })}
 
-                        <div className="text-7xl font-mono font-bold text-white mb-8 tabular-nums">
-                            {formatTime(timeLeft)}
-                        </div>
+                    <div className="h-12"></div>
+                </div>
+            ) : (
+                <div className="space-y-4 animate-slideUp">
+                    <div className="bg-gradient-to-r from-neuro-purple/20 to-neuro-cyan/20 p-4 rounded-xl border border-white/10 mb-6">
+                        <h3 className="font-bold text-white mb-2">🧠 Modo Inmersión</h3>
+                        <p className="text-xs text-slate-300 leading-relaxed">
+                            Simula la "mente de niño" apagando la corteza prefrontal (juicio) y activando la amígdala (emoción).
+                            Usa estos protocolos antes de iniciar tu sesión de juego para romper la barrera de incredulidad.
+                        </p>
+                    </div>
 
-                        <div className="flex gap-4 justify-center">
-                            <button 
-                                onClick={toggleTimer}
-                                className={`px-8 py-4 rounded-full font-bold text-sm transition-all ${isRunning ? 'bg-slate-800 text-white border border-slate-600' : 'bg-white text-black hover:bg-slate-200'}`}
-                            >
-                                {isRunning ? 'PAUSAR' : 'REANUDAR'}
-                            </button>
-                            <button 
-                                onClick={() => completeStep(currentStepObj.id)}
-                                className="px-8 py-4 rounded-full bg-neuro-green text-black font-bold text-sm hover:brightness-110 shadow-[0_0_20px_rgba(0,255,157,0.3)]"
-                            >
-                                COMPLETAR
-                            </button>
-                            <button 
-                                onClick={() => setActiveStep(null)}
-                                className="px-4 py-4 rounded-full text-slate-500 hover:text-white"
-                            >
-                                ✕
-                            </button>
+                    {GAMER_ROUTINES.map((routine, idx) => (
+                        <div key={idx} className="glass p-6 rounded-xl border-l-4 border-neuro-cyan">
+                            <h3 className="text-xl font-bold text-white mb-1">{routine.title}</h3>
+                            <p className="text-sm text-slate-400 mb-4">{routine.desc}</p>
+
+                            <div className="flex flex-col gap-2 relative">
+                                <div className="absolute left-[15px] top-4 bottom-4 w-0.5 bg-slate-800 -z-10"></div>
+
+                                {routine.steps.map((stepId, stepIdx) => {
+                                    // Map step IDs to nice names/times since we lost the TOOLS array reference in this file
+                                    // Or we can import TOOLS or just hardcode for now as this is specific
+                                    const getToolInfo = (id: string) => {
+                                        switch(id) {
+                                            case 'calm': return { title: 'Recuperación', time: '5 min' };
+                                            case 'gaze': return { title: 'Enfoque Visual', time: '45 seg' };
+                                            case 'active': return { title: 'Activación', time: '3 min' };
+                                            case 'panoramic': return { title: 'Visión Panorámica', time: '2 min' };
+                                            default: return { title: id, time: '' };
+                                        }
+                                    };
+                                    const info = getToolInfo(stepId);
+
+                                    return (
+                                        <div key={stepIdx} className="flex items-center gap-4 bg-slate-900/50 p-3 rounded-lg border border-slate-800 hover:border-slate-600 transition-colors">
+                                            <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-[10px] font-bold text-neuro-cyan border border-slate-700">
+                                                {stepIdx + 1}
+                                            </div>
+                                            <div className="flex-1">
+                                                <h4 className="font-bold text-slate-200 text-sm">{info.title}</h4>
+                                                <span className="text-[10px] text-slate-500">{info.time}</span>
+                                            </div>
+                                            <button
+                                                onClick={() => setActiveTimer({ type: stepId as FlowSessionType })}
+                                                className="px-4 py-1.5 bg-slate-800 hover:bg-white text-white hover:text-black rounded text-xs font-bold transition-colors"
+                                            >
+                                                IR
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
+                    ))}
+
+                    <div className="mt-8 p-4 border border-dashed border-slate-700 rounded-xl">
+                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">CHECKLIST DE INMERSIÓN</h4>
+                        <ul className="space-y-2 text-sm text-slate-400">
+                            <li className="flex items-center gap-2"><span className="text-neuro-green">✓</span> HUD / Minimapa Desactivado</li>
+                            <li className="flex items-center gap-2"><span className="text-neuro-green">✓</span> Audio en Rango Dinámico Alto</li>
+                            <li className="flex items-center gap-2"><span className="text-neuro-green">✓</span> FOV a 90-100 (Visión Periférica)</li>
+                            <li className="flex items-center gap-2"><span className="text-neuro-green">✓</span> Sin Viaje Rápido (Permadeath Mental)</li>
+                        </ul>
                     </div>
                 </div>
             )}
-
-            {/* Steps List */}
-            <div className="space-y-8 relative">
-                {/* Connector Line */}
-                <div className="absolute left-[27px] top-4 bottom-4 w-0.5 bg-slate-800 -z-10"></div>
-
-                {['warmup', 'immersion', 'execution'].map((phase, idx) => (
-                    <div key={phase}>
-                        <h3 className={`text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 pl-16 flex items-center gap-2`}>
-                            <span className={`w-2 h-2 rounded-full bg-${getPhaseColor(phase)}`}></span>
-                            FASE {idx + 1}: {phase === 'warmup' ? 'CALENTAMIENTO' : phase === 'immersion' ? 'INMERSIÓN' : 'EJECUCIÓN'}
-                        </h3>
-                        
-                        <div className="space-y-4">
-                            {STUDY_FLOW.filter(s => s.phase === phase).map((step) => {
-                                const isCompleted = completedSteps.includes(step.id);
-                                const isLocked = step.id > 1 && !completedSteps.includes(step.id - 1);
-
-                                return (
-                                    <div 
-                                        key={step.id}
-                                        className={`relative flex items-start gap-4 p-4 rounded-xl border transition-all ${
-                                            isCompleted ? 'bg-slate-900/30 border-neuro-green/30 opacity-75' : 
-                                            isLocked ? 'bg-slate-900/20 border-slate-800 opacity-50 grayscale' : 
-                                            'glass border-slate-700 hover:border-white/30'
-                                        }`}
-                                    >
-                                        {/* Status Icon */}
-                                        <div className={`w-14 h-14 shrink-0 rounded-full flex items-center justify-center font-bold text-lg border-2 z-10 ${
-                                            isCompleted ? 'bg-neuro-green text-black border-neuro-green' : 
-                                            isLocked ? 'bg-slate-900 text-slate-600 border-slate-700' : 
-                                            `bg-slate-900 text-${getPhaseColor(phase)} border-${getPhaseColor(phase)}`
-                                        }`}>
-                                            {isCompleted ? '✓' : step.id}
-                                        </div>
-
-                                        <div className="flex-1">
-                                            <div className="flex justify-between items-start">
-                                                <h4 className={`font-bold text-lg ${isCompleted ? 'text-neuro-green line-through' : 'text-white'}`}>{step.title}</h4>
-                                                <span className="text-xs font-mono text-slate-500 bg-slate-900 px-2 py-1 rounded">{step.duration} min</span>
-                                            </div>
-                                            <p className="text-sm text-slate-400 mt-1 mb-3">{step.description}</p>
-                                            
-                                            {!isCompleted && !isLocked && (
-                                                <button 
-                                                    onClick={() => startStep(step)}
-                                                    className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-${getPhaseColor(phase)} text-white hover:brightness-110 shadow-[0_0_10px_rgba(0,0,0,0.3)]`}
-                                                >
-                                                    INICIAR BLOQUE
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            <div className="mt-8 p-4 bg-slate-900/50 rounded-xl border border-slate-800 text-center">
-                 <p className="text-xs text-slate-500 mb-2">ESTADO DE LA SESIÓN</p>
-                 <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                     <div 
-                        className="h-full bg-neuro-cyan transition-all duration-500" 
-                        style={{ width: `${(completedSteps.length / STUDY_FLOW.length) * 100}%` }}
-                     ></div>
-                 </div>
-                 <p className="text-xs text-neuro-cyan font-bold mt-2">{Math.round((completedSteps.length / STUDY_FLOW.length) * 100)}% COMPLETADO</p>
-            </div>
         </div>
     );
 };
