@@ -296,8 +296,8 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
             {/* Main Visualizer */}
             <div className="relative z-10 flex flex-col items-center w-full max-w-lg mb-10">
                 {!isBreathingSession ? (
-                    <div className="text-center w-full">
-                        <div className={`text-8xl font-black text-white font-mono tracking-tighter mb-8 tabular-nums`}>
+                    <div className="text-center w-full relative">
+                        <div className={`${['gaze', 'panoramic'].includes(type) ? 'fixed bottom-8 right-8 text-2xl opacity-30 hover:opacity-100' : 'text-8xl mb-8'} font-black text-white font-mono tracking-tighter tabular-nums transition-all duration-500`}>
                             {formatTime(timeLeft)}
                         </div>
                         
@@ -368,7 +368,7 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
                             <span className="text-xl font-bold text-slate-300 uppercase tracking-widest mb-1 text-center px-2 leading-tight">{phase}</span>
                             {/* Removed the large number countdown to reduce distraction as requested */}
                         </div>
-                        <div className="mt-12 font-mono text-slate-500">
+                        <div className="fixed bottom-48 font-mono text-slate-500 pointer-events-none z-0">
                             CICLO <span className="text-white text-xl">{cycleCount}</span> <span className="text-xs">/ {config.cycles}</span>
                         </div>
                     </>

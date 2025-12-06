@@ -213,7 +213,7 @@ export const FlowModule: React.FC<FlowModuleProps> = ({ onSessionComplete }) => 
                                         ⚙️
                                     </button>
                                 </div>
-                                <span className={`text-[10px] font-mono font-bold text-neuro-${tool.color} bg-slate-900/50 px-2 py-1 rounded mb-3 inline-block`}>
+                                <span className={`text-xs font-mono font-bold text-neuro-${tool.color} bg-slate-900/50 px-2 py-1 rounded mb-3 inline-block`}>
                                     {tool.time}
                                 </span>
                                 <p className="text-sm text-slate-400 mb-6 min-h-[40px] leading-relaxed">{tool.desc}</p>
@@ -245,8 +245,8 @@ export const FlowModule: React.FC<FlowModuleProps> = ({ onSessionComplete }) => 
                                         <span className="text-[9px] bg-slate-800 px-1.5 py-0.5 rounded text-neuro-cyan tracking-wider">INICIAR</span>
                                     </button>
                                     <div className="px-2 py-2 bg-black/20">
-                                        <p className="text-[10px] text-slate-400 mb-1.5">{preset.desc}</p>
-                                        <p className="text-[9px] text-slate-500 italic border-l-2 border-neuro-purple/30 pl-2 leading-relaxed">
+                                        <p className="text-xs text-slate-400 mb-1.5">{preset.desc}</p>
+                                        <p className="text-[11px] text-slate-500 italic border-l-2 border-neuro-purple/30 pl-2 leading-relaxed">
                                             {preset.info}
                                         </p>
                                     </div>

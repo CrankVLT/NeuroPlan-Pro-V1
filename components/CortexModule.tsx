@@ -285,7 +285,22 @@ export const CortexModule: React.FC = () => {
                         </p>
                     </div>
 
-                    {GAMER_ROUTINES.map((routine, idx) => (
+                    {/* Moved Checklist to Top */}
+                    <div className="mb-8 p-4 border border-dashed border-slate-700 rounded-xl bg-slate-900/30">
+                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">CHECKLIST DE INMERSIÓN</h4>
+                        <ul className="space-y-2 text-sm text-slate-400">
+                            <li className="flex items-center gap-2"><span className="text-neuro-green">✓</span> HUD / Minimapa Desactivado</li>
+                            <li className="flex items-center gap-2"><span className="text-neuro-green">✓</span> Audio en Rango Dinámico Alto</li>
+                            <li className="flex items-center gap-2"><span className="text-neuro-green">✓</span> FOV a 90-100 (Visión Periférica)</li>
+                            <li className="flex items-center gap-2"><span className="text-neuro-green">✓</span> Sin Viaje Rápido (Permadeath Mental)</li>
+                        </ul>
+                    </div>
+
+                    {[...GAMER_ROUTINES, {
+                        title: "Calentamiento Motor (Reflejos)",
+                        desc: "Sincronización óculo-manual. Prepara los reflejos antes de partidas competitivas.",
+                        steps: ['gaze', 'active']
+                    }].map((routine, idx) => (
                         <div key={idx} className="glass p-6 rounded-xl border-l-4 border-neuro-cyan">
                             <h3 className="text-xl font-bold text-white mb-1">{routine.title}</h3>
                             <p className="text-sm text-slate-400 mb-4">{routine.desc}</p>
@@ -328,16 +343,6 @@ export const CortexModule: React.FC = () => {
                             </div>
                         </div>
                     ))}
-
-                    <div className="mt-8 p-4 border border-dashed border-slate-700 rounded-xl">
-                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">CHECKLIST DE INMERSIÓN</h4>
-                        <ul className="space-y-2 text-sm text-slate-400">
-                            <li className="flex items-center gap-2"><span className="text-neuro-green">✓</span> HUD / Minimapa Desactivado</li>
-                            <li className="flex items-center gap-2"><span className="text-neuro-green">✓</span> Audio en Rango Dinámico Alto</li>
-                            <li className="flex items-center gap-2"><span className="text-neuro-green">✓</span> FOV a 90-100 (Visión Periférica)</li>
-                            <li className="flex items-center gap-2"><span className="text-neuro-green">✓</span> Sin Viaje Rápido (Permadeath Mental)</li>
-                        </ul>
-                    </div>
                 </div>
             )}
         </div>
