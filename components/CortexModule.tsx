@@ -121,6 +121,7 @@ interface SessionState {
     startTime: number | null; // Timestamp of current segment start
     accumulatedTime: number; // MS accumulated before current segment
     name: string;
+    targetDuration?: number;
 }
 
 const DEFAULT_SESSION_STATE: SessionState = {
@@ -132,6 +133,7 @@ const DEFAULT_SESSION_STATE: SessionState = {
 
 export const CortexModule: React.FC = () => {
     const [tab, setTab] = useState<'study' | 'gaming'>('study');
+    const [now, setNow] = useState(Date.now());
 
     // Study State
     const [studyProgress, setStudyProgress] = useState<string[]>([]);
@@ -142,6 +144,7 @@ export const CortexModule: React.FC = () => {
     const [session, setSession] = useState<SessionState>(DEFAULT_SESSION_STATE);
     const [showNameModal, setShowNameModal] = useState(false);
     const [tempSessionName, setTempSessionName] = useState("");
+    const [tempTarget, setTempTarget] = useState<number | undefined>(undefined);
     const [showSummary, setShowSummary] = useState<SessionLog | null>(null);
 
     // Mode Selection for Timers
@@ -182,15 +185,22 @@ export const CortexModule: React.FC = () => {
         localStorage.setItem('cortex_session_state', JSON.stringify(session));
     }, [session]);
 
+    useEffect(() => {
+        if (session.status === 'running') {
+            const interval = setInterval(() => setNow(Date.now()), 1000);
+            return () => clearInterval(interval);
+        }
+    }, [session.status]);
+
     // --- ACTIONS ---
 
     const toggleStep = (id: string) => {
         // Find phase
         const phase = DEEP_STUDY_FLOW.find(p => p.steps.some(s => s.id === id));
-        if (phase && phase.id > 0) {
+        if (phase && phase.id > 1) {
             // Require active session
             if (session.status !== 'running') {
-                alert("Debes INICIAR y tener activa la Sesión de Estudio para marcar progreso en esta fase.");
+                alert("Debes INICIAR la Rutina de Estudio (Bloque de 90 min) para marcar progreso en esta fase.");
                 return;
             }
         }
@@ -220,8 +230,9 @@ export const CortexModule: React.FC = () => {
 
     // --- SESSION LOGIC ---
 
-    const initiateSession = () => {
-        setTempSessionName("");
+    const initiateSession = (name?: string, target?: number) => {
+        setTempSessionName(name || "");
+        setTempTarget(target);
         setShowNameModal(true);
     };
 
@@ -230,7 +241,8 @@ export const CortexModule: React.FC = () => {
             status: 'running',
             startTime: Date.now(),
             accumulatedTime: 0,
-            name: tempSessionName || "Sesión de Estudio"
+            name: tempSessionName || "Sesión de Estudio",
+            targetDuration: tempTarget
         });
         setShowNameModal(false);
     };
@@ -314,6 +326,28 @@ export const CortexModule: React.FC = () => {
     };
 
     // --- RENDER ---
+
+    const formatTime = (ms: number) => {
+        const totalSecs = Math.floor(ms / 1000);
+        const h = Math.floor(totalSecs / 3600);
+        const m = Math.floor((totalSecs % 3600) / 60);
+        const s = totalSecs % 60;
+        if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        return `${m}:${s.toString().padStart(2, '0')}`;
+    };
+
+    const getSessionTime = () => {
+        let ms = session.accumulatedTime;
+        if (session.status === 'running' && session.startTime) {
+            ms += (Date.now() - session.startTime);
+        }
+
+        if (session.targetDuration) {
+             const remaining = Math.max(0, session.targetDuration - ms);
+             return remaining;
+        }
+        return ms;
+    };
 
     if (activeTimer) {
         const config = {
@@ -423,45 +457,47 @@ export const CortexModule: React.FC = () => {
                 <div className="space-y-8 relative">
 
                     {/* Global Session Control Panel */}
-                    <div className="sticky top-0 z-40 bg-neuro-bg/95 backdrop-blur-md pb-4 pt-2 border-b border-slate-800/50">
+                    <div className="sticky top-0 z-40 bg-neuro-bg/95 backdrop-blur-md pb-4 pt-2 border-b border-slate-800/50 min-h-[80px] flex flex-col justify-center transition-all">
                         {session.status === 'idle' ? (
-                            <button
-                                onClick={initiateSession}
-                                className="w-full py-4 rounded-xl font-bold text-sm tracking-wider shadow-lg bg-neuro-purple text-white hover:brightness-110 transition-all active:scale-95"
-                            >
-                                INICIAR SESIÓN DE ESTUDIO
-                            </button>
-                        ) : (
-                            <div className="flex gap-2">
-                                {session.status === 'running' ? (
-                                    <button
-                                        onClick={pauseSession}
-                                        className="flex-1 py-4 rounded-xl font-bold text-sm tracking-wider shadow-lg bg-slate-800 text-white border border-slate-600 hover:bg-slate-700 transition-all"
-                                    >
-                                        PAUSAR
-                                    </button>
-                                ) : (
-                                    <button
-                                        onClick={resumeSession}
-                                        className="flex-1 py-4 rounded-xl font-bold text-sm tracking-wider shadow-lg bg-neuro-cyan text-black hover:bg-white transition-all animate-pulse"
-                                    >
-                                        RESUMIR
-                                    </button>
-                                )}
-                                <button
-                                    onClick={completeSession}
-                                    className="flex-1 py-4 rounded-xl font-bold text-sm tracking-wider shadow-lg bg-neuro-red text-white hover:brightness-110 transition-all"
-                                >
-                                    COMPLETAR SESIÓN
-                                </button>
-                            </div>
-                        )}
-
-                        {session.status !== 'idle' && (
-                            <div className="text-center mt-2">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                    {session.status === 'paused' ? 'EN PAUSA' : 'SESIÓN ACTIVA'}: <span className="text-white">{session.name}</span>
+                            <div className="text-center">
+                                <span className="text-xs font-mono font-bold text-slate-500 uppercase tracking-widest animate-pulse">
+                                    COMPLETA LA FASE DE PREPARACIÓN (0 Y 1)
                                 </span>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col gap-2">
+                                <div className="flex gap-2 items-center">
+                                    <div className={`bg-slate-900 px-4 py-3 rounded-xl text-2xl font-mono font-bold text-white border border-slate-700 w-36 text-center shadow-inner ${session.targetDuration && getSessionTime() === 0 ? 'text-neuro-green' : ''}`}>
+                                        {formatTime(getSessionTime())}
+                                    </div>
+
+                                    {session.status === 'running' ? (
+                                        <button
+                                            onClick={pauseSession}
+                                            className="flex-1 py-3 rounded-xl font-bold text-xs tracking-wider shadow-lg bg-slate-800 text-white border border-slate-600 hover:bg-slate-700 transition-all"
+                                        >
+                                            PAUSAR
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={resumeSession}
+                                            className="flex-1 py-3 rounded-xl font-bold text-xs tracking-wider shadow-lg bg-neuro-cyan text-black hover:bg-white transition-all animate-pulse"
+                                        >
+                                            RESUMIR
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={completeSession}
+                                        className="flex-1 py-3 rounded-xl font-bold text-xs tracking-wider shadow-lg bg-neuro-red text-white hover:brightness-110 transition-all"
+                                    >
+                                        TERMINAR
+                                    </button>
+                                </div>
+                                <div className="text-center">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                        {session.status === 'paused' ? 'EN PAUSA' : 'SESIÓN ACTIVA'}: <span className="text-white">{session.name}</span>
+                                    </span>
+                                </div>
                             </div>
                         )}
                     </div>
@@ -490,8 +526,9 @@ export const CortexModule: React.FC = () => {
                         const allDone = phase.steps.every(s => studyProgress.includes(s.id));
 
                         return (
-                            <div key={phase.id} className={`relative z-10 transition-opacity duration-500 ${unlocked ? 'opacity-100' : 'opacity-30 blur-[2px] pointer-events-none'}`}>
-                                <div className="flex items-center gap-4 mb-4">
+                            <React.Fragment key={phase.id}>
+                                <div className={`relative z-10 transition-opacity duration-500 ${unlocked ? 'opacity-100' : 'opacity-30 blur-[2px] pointer-events-none'}`}>
+                                    <div className="flex items-center gap-4 mb-4">
                                     <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border-2 shrink-0 ${allDone ? 'bg-neuro-green text-black border-neuro-green' : unlocked ? 'bg-neuro-bg text-neuro-cyan border-neuro-cyan' : 'bg-slate-900 text-slate-600 border-slate-800'}`}>
                                         {allDone ? '✓' : phase.id}
                                     </div>
@@ -541,8 +578,21 @@ export const CortexModule: React.FC = () => {
                                             </div>
                                         );
                                     })}
+                                    </div>
                                 </div>
-                            </div>
+
+                                {phase.id === 1 && session.status === 'idle' && (
+                                    <div className="my-12 flex justify-center animate-fadeIn">
+                                        <button
+                                            onClick={() => initiateSession("Rutina de Estudio Profundo", 90 * 60 * 1000)}
+                                            className="group relative bg-neuro-purple text-white px-8 py-5 rounded-2xl font-black text-lg shadow-[0_0_40px_rgba(112,0,255,0.4)] hover:scale-105 transition-all overflow-hidden"
+                                        >
+                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:animate-[shimmer_1.5s_infinite]"></div>
+                                            INICIAR RUTINA DE ESTUDIO (90 MIN)
+                                        </button>
+                                    </div>
+                                )}
+                            </React.Fragment>
                         );
                     })}
 

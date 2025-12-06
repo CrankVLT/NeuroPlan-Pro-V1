@@ -85,8 +85,16 @@ export const OKRDetailModal: React.FC<OKRDetailModalProps> = ({ goal, onClose, o
                 <button onClick={onClose} className="text-slate-400 hover:text-white flex items-center gap-2 font-bold text-sm">
                     ← ATRÁS
                 </button>
-                <div className="font-mono text-xs text-slate-500 font-bold uppercase tracking-widest">
-                    EDITANDO OBJETIVO
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={onDelete}
+                        className="text-neuro-red hover:text-red-400 font-bold text-xs uppercase tracking-wider border border-neuro-red/30 px-3 py-1 rounded bg-neuro-red/10"
+                    >
+                        ELIMINAR
+                    </button>
+                    <div className="font-mono text-xs text-slate-500 font-bold uppercase tracking-widest hidden md:block">
+                        EDITANDO OBJETIVO
+                    </div>
                 </div>
             </div>
 
@@ -265,25 +273,17 @@ export const OKRDetailModal: React.FC<OKRDetailModalProps> = ({ goal, onClose, o
             {/* Footer / Actions Bar */}
             <div className="p-4 border-t border-slate-800 bg-slate-900/90 flex gap-3 z-50">
                 <button
-                    onClick={onDelete}
-                    className="px-4 py-3 bg-slate-800/50 text-neuro-red border border-slate-700 hover:bg-neuro-red/10 rounded-lg font-bold text-xs"
+                    onClick={onComplete}
+                    className="flex-1 px-4 py-3 bg-slate-800 text-neuro-green border border-slate-700 hover:bg-neuro-green/10 rounded-lg font-bold text-sm transition-all"
                 >
-                    ELIMINAR
+                    COMPLETAR
                 </button>
-                <div className="flex-1 flex gap-3">
-                    <button
-                        onClick={onComplete}
-                        className="flex-1 px-4 py-3 bg-slate-800 text-neuro-green border border-slate-700 hover:bg-neuro-green/10 rounded-lg font-bold text-xs"
-                    >
-                        COMPLETAR
-                    </button>
-                    <button
-                        onClick={onClose}
-                        className="flex-1 px-4 py-3 bg-neuro-purple text-white hover:brightness-110 rounded-lg font-bold text-sm shadow-[0_0_15px_rgba(112,0,255,0.3)]"
-                    >
-                        GUARDAR
-                    </button>
-                </div>
+                <button
+                    onClick={onClose}
+                    className="flex-1 px-4 py-3 bg-neuro-purple text-white hover:brightness-110 rounded-lg font-bold text-sm shadow-[0_0_15px_rgba(112,0,255,0.3)] transition-all"
+                >
+                    GUARDAR
+                </button>
             </div>
         </div>
     );

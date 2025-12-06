@@ -114,7 +114,7 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
 
     // Timer Logic
     useEffect(() => {
-        if ((status === 'running' || status === 'rest')) {
+        if ((status === 'running' || status === 'rest') && !isBreathingSession) {
             timerRef.current = window.setInterval(() => {
                 if (!isMountedRef.current) return;
 
