@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAudio } from '../hooks/useAudio';
 import { FlowSessionType } from '../types';
 import { ActiveSession } from './flow/ActiveSession';
 
-// --- GAMING ROUTINES (MOVED FROM FLOW) ---
+// --- GAMING ROUTINES ---
 const GAMER_ROUTINES = [
     {
         title: "Inmersión Acción (FPS/Horror)",
@@ -37,6 +37,7 @@ interface StudyStep {
     type: 'checkbox' | 'timer' | 'input';
     timerType?: FlowSessionType;
     duration?: number; // minutes for timer
+    allowStopwatch?: boolean; // New flag for Reading steps
 }
 
 const DEEP_STUDY_FLOW: StudyPhase[] = [
@@ -47,13 +48,13 @@ const DEEP_STUDY_FLOW: StudyPhase[] = [
         steps: [
             { id: 's0_1', label: "Fuente cargada en NotebookLM", type: 'checkbox' },
             { id: 's0_2', label: "Chat como 'Guía de aprendizaje'", type: 'checkbox' },
-            { id: 's0_3', label: "Audio Overview generado", instruction: "Prompt: Enfócate en procesos logísticos y legales, omite historia", type: 'checkbox' },
+            { id: 's0_3', label: "Audio Overview generado", instruction: "Prompt: 'Enfócate en los conceptos clave y relaciones, omite detalles triviales'", type: 'checkbox' },
             { id: 's0_4', label: "Video Overview generado (Opcional)", type: 'checkbox' },
             { id: 's0_5', label: "Infografía generada", type: 'checkbox' },
             { id: 's0_6', label: "Mapa Mental generado", type: 'checkbox' },
             { id: 's0_7', label: "Guía de Estudio generada", type: 'checkbox' },
-            { id: 's0_8', label: "Flashcards generadas", instruction: "Prompt: Genera tarjetas solo sobre el vocabulario técnico", type: 'checkbox' },
-            { id: 's0_9', label: "Cuestionario generado", instruction: "Prompt: Genera preguntas sobre vocabulario y conceptos clave", type: 'checkbox' }
+            { id: 's0_8', label: "Flashcards generadas", instruction: "Prompt: 'Genera tarjetas sobre definiciones y conceptos difíciles'", type: 'checkbox' },
+            { id: 's0_9', label: "Cuestionario generado", instruction: "Prompt: 'Genera preguntas de opción múltiple para evaluar comprensión'", type: 'checkbox' }
         ]
     },
     {
@@ -81,8 +82,8 @@ const DEEP_STUDY_FLOW: StudyPhase[] = [
         steps: [
             { id: 's3_1', label: "Infografía Analizada", type: 'checkbox' },
             { id: 's3_2', label: "Mapa Mental Procesado", instruction: "Genera notas por cada nodo en NotebookLM", type: 'checkbox' },
-            { id: 's3_3', label: "Lectura Inicial: Guía de Estudio", type: 'checkbox' },
-            { id: 's3_4', label: "Lectura Profunda: Documento Original", instruction: "Responder preguntas de la guía mientras se lee", type: 'checkbox' }
+            { id: 's3_3', label: "Lectura Inicial: Guía de Estudio (25m)", type: 'timer', timerType: 'focus', duration: 25, allowStopwatch: true },
+            { id: 's3_4', label: "Lectura Profunda: Documento Original (45m)", instruction: "Responder preguntas de la guía mientras se lee", type: 'timer', timerType: 'focus', duration: 45, allowStopwatch: true }
         ]
     },
     {
@@ -115,16 +116,39 @@ interface SessionLog {
     duration: string;
 }
 
+interface SessionState {
+    status: 'idle' | 'running' | 'paused';
+    startTime: number | null; // Timestamp of current segment start
+    accumulatedTime: number; // MS accumulated before current segment
+    name: string;
+    targetDuration?: number;
+}
+
+const DEFAULT_SESSION_STATE: SessionState = {
+    status: 'idle',
+    startTime: null,
+    accumulatedTime: 0,
+    name: ''
+};
+
 export const CortexModule: React.FC = () => {
     const [tab, setTab] = useState<'study' | 'gaming'>('study');
+    const [now, setNow] = useState(Date.now());
 
     // Study State
     const [studyProgress, setStudyProgress] = useState<string[]>([]);
-    const [activeTimer, setActiveTimer] = useState<{type: FlowSessionType, duration?: number, stepId?: string} | null>(null);
+    const [activeTimer, setActiveTimer] = useState<{type: FlowSessionType, duration?: number, stepId?: string, mode?: 'timer'|'stopwatch'} | null>(null);
     const [sessionLogs, setSessionLogs] = useState<SessionLog[]>([]);
-    const [showSaveModal, setShowSaveModal] = useState(false);
-    const [lastCompletedSession, setLastCompletedSession] = useState<{type: string, duration: string} | null>(null);
-    const [sessionName, setSessionName] = useState("");
+
+    // Session Tracking
+    const [session, setSession] = useState<SessionState>(DEFAULT_SESSION_STATE);
+    const [showNameModal, setShowNameModal] = useState(false);
+    const [tempSessionName, setTempSessionName] = useState("");
+    const [tempTarget, setTempTarget] = useState<number | undefined>(undefined);
+    const [showSummary, setShowSummary] = useState<SessionLog | null>(null);
+
+    // Mode Selection for Timers
+    const [showModeSelection, setShowModeSelection] = useState<{step: StudyStep} | null>(null);
 
     // Default configs for breathing sessions
     const DEFAULT_CONFIGS: Record<string, any> = {
@@ -137,15 +161,16 @@ export const CortexModule: React.FC = () => {
         nsdr: { duration: 20 }
     };
 
+    // Persistence
     useEffect(() => {
         const saved = localStorage.getItem('cortex_study_flow');
-        if (saved) {
-            setStudyProgress(JSON.parse(saved));
-        }
+        if (saved) setStudyProgress(JSON.parse(saved));
+
         const savedLogs = localStorage.getItem('cortex_session_logs');
-        if (savedLogs) {
-            setSessionLogs(JSON.parse(savedLogs));
-        }
+        if (savedLogs) setSessionLogs(JSON.parse(savedLogs));
+
+        const savedSession = localStorage.getItem('cortex_session_state');
+        if (savedSession) setSession(JSON.parse(savedSession));
     }, []);
 
     useEffect(() => {
@@ -156,7 +181,30 @@ export const CortexModule: React.FC = () => {
         localStorage.setItem('cortex_session_logs', JSON.stringify(sessionLogs));
     }, [sessionLogs]);
 
+    useEffect(() => {
+        localStorage.setItem('cortex_session_state', JSON.stringify(session));
+    }, [session]);
+
+    useEffect(() => {
+        if (session.status === 'running') {
+            const interval = setInterval(() => setNow(Date.now()), 1000);
+            return () => clearInterval(interval);
+        }
+    }, [session.status]);
+
+    // --- ACTIONS ---
+
     const toggleStep = (id: string) => {
+        // Find phase
+        const phase = DEEP_STUDY_FLOW.find(p => p.steps.some(s => s.id === id));
+        if (phase && phase.id > 1) {
+            // Require active session
+            if (session.status !== 'running') {
+                alert("Debes INICIAR la Rutina de Estudio (Bloque de 90 min) para marcar progreso en esta fase.");
+                return;
+            }
+        }
+
         setStudyProgress(prev =>
             prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
         );
@@ -174,54 +222,138 @@ export const CortexModule: React.FC = () => {
         return Math.round((studyProgress.length / totalSteps) * 100);
     };
 
-    const handleSessionComplete = () => {
+    const resetProgress = () => {
+        if(confirm("¿Estás seguro de que quieres reiniciar el progreso de Deep Study? Se desmarcarán todas las casillas.")) {
+            setStudyProgress([]);
+        }
+    };
+
+    // --- SESSION LOGIC ---
+
+    const initiateSession = (name?: string, target?: number) => {
+        setTempSessionName(name || "");
+        setTempTarget(target);
+        setShowNameModal(true);
+    };
+
+    const startSession = () => {
+        setSession({
+            status: 'running',
+            startTime: Date.now(),
+            accumulatedTime: 0,
+            name: tempSessionName || "Sesión de Estudio",
+            targetDuration: tempTarget
+        });
+        setShowNameModal(false);
+    };
+
+    const pauseSession = () => {
+        if (session.status !== 'running' || !session.startTime) return;
+        const elapsed = Date.now() - session.startTime;
+        setSession(prev => ({
+            ...prev,
+            status: 'paused',
+            startTime: null,
+            accumulatedTime: prev.accumulatedTime + elapsed
+        }));
+    };
+
+    const resumeSession = () => {
+        if (session.status !== 'paused') return;
+        setSession(prev => ({
+            ...prev,
+            status: 'running',
+            startTime: Date.now()
+        }));
+    };
+
+    const completeSession = () => {
+        let totalMs = session.accumulatedTime;
+        if (session.status === 'running' && session.startTime) {
+            totalMs += (Date.now() - session.startTime);
+        }
+
+        const minutes = Math.floor(totalMs / 60000);
+        const hours = Math.floor(minutes / 60);
+        const mins = minutes % 60;
+        const durationStr = hours > 0 ? `${hours}h ${mins}m` : `${mins} min`;
+
+        const newLog: SessionLog = {
+            id: Date.now().toString(),
+            name: session.name,
+            date: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+            type: "DEEP STUDY",
+            duration: durationStr
+        };
+
+        setSessionLogs(prev => [newLog, ...prev]);
+        setSession(DEFAULT_SESSION_STATE);
+        setShowSummary(newLog);
+    };
+
+    // --- TIMERS ---
+
+    const handleTimerRequest = (step: StudyStep) => {
+        if (step.allowStopwatch) {
+            setShowModeSelection({ step });
+        } else {
+            setActiveTimer({ type: step.timerType!, duration: step.duration, stepId: step.id, mode: 'timer' });
+        }
+    };
+
+    const launchTimer = (mode: 'timer' | 'stopwatch') => {
+        if (!showModeSelection) return;
+        const { step } = showModeSelection;
+        setActiveTimer({
+            type: step.timerType!,
+            duration: step.duration,
+            stepId: step.id,
+            mode
+        });
+        setShowModeSelection(null);
+    };
+
+    const handleTimerComplete = () => {
         if (activeTimer) {
-            // Auto-check step
             if (activeTimer.stepId && !studyProgress.includes(activeTimer.stepId)) {
-                toggleStep(activeTimer.stepId);
+                // For Deep Study Flow, only check off if session is running (should be enforced by UI visibility too)
+                if (session.status === 'running') {
+                    setStudyProgress(prev => [...prev, activeTimer.stepId!]);
+                }
             }
-
-            // Prepare for logging
-            const config = {
-                ...(DEFAULT_CONFIGS[activeTimer.type] || {}),
-                ...(activeTimer.duration ? { duration: activeTimer.duration } : {})
-            };
-
-            let durationStr = "";
-            if (activeTimer.type === 'active' || activeTimer.type === 'tummo' || activeTimer.type === 'calm') {
-                durationStr = `${config.cycles} ciclos`;
-            } else {
-                durationStr = `${config.duration} min`; // Simplified, usually config.duration is in min or sec depending on type
-                if (['gaze', 'panoramic'].includes(activeTimer.type)) durationStr = `${config.duration} seg`; // Usually seconds for these
-            }
-
-            setLastCompletedSession({
-                type: activeTimer.type,
-                duration: durationStr
-            });
-            setSessionName("");
-            setShowSaveModal(true);
             setActiveTimer(null);
         }
     };
 
-    const saveSessionLog = () => {
-        if (!lastCompletedSession) return;
-        const newLog: SessionLog = {
-            id: Date.now().toString(),
-            name: sessionName || "Sesión sin nombre",
-            date: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-            type: lastCompletedSession.type,
-            duration: lastCompletedSession.duration
-        };
-        setSessionLogs(prev => [newLog, ...prev]);
-        setShowSaveModal(false);
+    // --- RENDER ---
+
+    const formatTime = (ms: number) => {
+        const totalSecs = Math.floor(ms / 1000);
+        const h = Math.floor(totalSecs / 3600);
+        const m = Math.floor((totalSecs % 3600) / 60);
+        const s = totalSecs % 60;
+        if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        return `${m}:${s.toString().padStart(2, '0')}`;
+    };
+
+    const getSessionTime = () => {
+        let ms = session.accumulatedTime;
+        if (session.status === 'running' && session.startTime) {
+            ms += (Date.now() - session.startTime);
+        }
+
+        if (session.targetDuration) {
+             const remaining = Math.max(0, session.targetDuration - ms);
+             return remaining;
+        }
+        return ms;
     };
 
     if (activeTimer) {
         const config = {
             ...(DEFAULT_CONFIGS[activeTimer.type] || {}),
-            ...(activeTimer.duration ? { duration: activeTimer.duration } : {})
+            ...(activeTimer.duration ? { duration: activeTimer.duration } : {}),
+            mode: activeTimer.mode || 'timer'
         };
 
         return (
@@ -229,43 +361,78 @@ export const CortexModule: React.FC = () => {
                 type={activeTimer.type}
                 config={config}
                 onExit={() => setActiveTimer(null)}
-                onComplete={handleSessionComplete}
+                onComplete={handleTimerComplete}
             />
         );
     }
 
     return (
         <div className="pb-24 animate-fadeIn relative">
-            {/* Save Session Modal */}
-            {showSaveModal && (
+
+            {/* Start Session Modal */}
+            {showNameModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
                     <div className="bg-slate-900 border border-slate-700 p-6 rounded-xl w-full max-w-sm shadow-2xl animate-scaleIn">
-                        <h3 className="text-xl font-bold text-white mb-2">Sesión Completada</h3>
-                        <p className="text-sm text-slate-400 mb-4">¿Cómo quieres llamar a esta sesión?</p>
-
+                        <h3 className="text-xl font-bold text-white mb-2">Iniciar Sesión</h3>
+                        <p className="text-sm text-slate-400 mb-4">Dale un nombre a tu bloque de estudio.</p>
                         <input
                             type="text"
-                            value={sessionName}
-                            onChange={(e) => setSessionName(e.target.value)}
-                            placeholder="Ej: Estudio Matemáticas..."
+                            value={tempSessionName}
+                            onChange={(e) => setTempSessionName(e.target.value)}
+                            placeholder="Ej: Historia del Arte, Cálculo..."
                             className="w-full bg-slate-800 border border-slate-700 text-white rounded p-3 mb-4 focus:outline-none focus:border-neuro-purple"
                             autoFocus
                         />
-
                         <div className="flex gap-3">
-                            <button
-                                onClick={() => setShowSaveModal(false)}
-                                className="flex-1 py-2 rounded text-slate-400 font-bold text-xs hover:bg-slate-800"
-                            >
-                                DESCARTAR
+                            <button onClick={() => setShowNameModal(false)} className="flex-1 py-2 rounded text-slate-400 font-bold text-xs hover:bg-slate-800">CANCELAR</button>
+                            <button onClick={startSession} className="flex-1 py-2 rounded bg-neuro-purple text-white font-bold text-xs hover:brightness-110">COMENZAR</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Mode Selection Modal */}
+            {showModeSelection && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                    <div className="bg-slate-900 border border-slate-700 p-6 rounded-xl w-full max-w-sm shadow-2xl animate-scaleIn">
+                        <h3 className="text-xl font-bold text-white mb-4">Elige el Modo</h3>
+                        <div className="flex flex-col gap-3">
+                            <button onClick={() => launchTimer('timer')} className="p-4 bg-slate-800 hover:bg-neuro-purple/20 border border-slate-700 hover:border-neuro-purple rounded-xl text-left transition-all group">
+                                <span className="block font-bold text-white group-hover:text-neuro-purple mb-1">TRABAJO PROFUNDO</span>
+                                <span className="text-xs text-slate-400">Temporizador de cuenta regresiva ({showModeSelection.step.duration} min). Bloque fijo.</span>
                             </button>
-                            <button
-                                onClick={saveSessionLog}
-                                className="flex-1 py-2 rounded bg-neuro-purple text-white font-bold text-xs hover:brightness-110"
-                            >
-                                GUARDAR
+                            <button onClick={() => launchTimer('stopwatch')} className="p-4 bg-slate-800 hover:bg-neuro-cyan/20 border border-slate-700 hover:border-neuro-cyan rounded-xl text-left transition-all group">
+                                <span className="block font-bold text-white group-hover:text-neuro-cyan mb-1">MODO LIBRE</span>
+                                <span className="text-xs text-slate-400">Cronómetro (Cuenta progresiva). Sin límite de tiempo.</span>
                             </button>
                         </div>
+                        <button onClick={() => setShowModeSelection(null)} className="mt-4 text-xs text-slate-500 font-bold hover:text-white w-full py-2">CANCELAR</button>
+                    </div>
+                </div>
+            )}
+
+            {/* Summary Modal */}
+            {showSummary && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={() => setShowSummary(null)}>
+                    <div className="bg-neuro-card border border-slate-700 p-8 rounded-xl w-full max-w-md shadow-2xl animate-scaleIn text-center relative overflow-hidden" onClick={e => e.stopPropagation()}>
+                        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-neuro-purple to-neuro-cyan"></div>
+                        <h3 className="text-2xl font-black text-white mb-2">¡Sesión Completada!</h3>
+                        <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-slate-500 font-mono mb-4 tracking-tighter">
+                            {showSummary.duration}
+                        </div>
+                        <p className="text-slate-400 text-sm mb-6">{showSummary.name}</p>
+
+                        <div className="bg-slate-900/50 p-4 rounded-lg border border-slate-800 mb-6 text-left">
+                            <p className="text-xs text-slate-500 font-bold uppercase mb-2">RESUMEN</p>
+                            <p className="text-sm text-slate-300">Has completado un bloque de estudio profundo. Tu progreso ha sido registrado en el historial.</p>
+                        </div>
+
+                        <button
+                            onClick={() => setShowSummary(null)}
+                            className="w-full py-3 bg-neuro-purple text-white rounded-lg font-bold hover:brightness-110"
+                        >
+                            CERRAR
+                        </button>
                     </div>
                 </div>
             )}
@@ -288,11 +455,61 @@ export const CortexModule: React.FC = () => {
 
             {tab === 'study' ? (
                 <div className="space-y-8 relative">
+
+                    {/* Global Session Control Panel */}
+                    <div className="sticky top-0 z-40 bg-neuro-bg/95 backdrop-blur-md pb-4 pt-2 border-b border-slate-800/50 min-h-[80px] flex flex-col justify-center transition-all">
+                        {session.status === 'idle' ? (
+                            <div className="text-center">
+                                <span className="text-xs font-mono font-bold text-slate-500 uppercase tracking-widest animate-pulse">
+                                    COMPLETA LA FASE DE PREPARACIÓN (0 Y 1)
+                                </span>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col gap-2">
+                                <div className="flex gap-2 items-center">
+                                    <div className={`bg-slate-900 px-4 py-3 rounded-xl text-2xl font-mono font-bold text-white border border-slate-700 w-36 text-center shadow-inner ${session.targetDuration && getSessionTime() === 0 ? 'text-neuro-green' : ''}`}>
+                                        {formatTime(getSessionTime())}
+                                    </div>
+
+                                    {session.status === 'running' ? (
+                                        <button
+                                            onClick={pauseSession}
+                                            className="flex-1 py-3 rounded-xl font-bold text-xs tracking-wider shadow-lg bg-slate-800 text-white border border-slate-600 hover:bg-slate-700 transition-all"
+                                        >
+                                            PAUSAR
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={resumeSession}
+                                            className="flex-1 py-3 rounded-xl font-bold text-xs tracking-wider shadow-lg bg-neuro-cyan text-black hover:bg-white transition-all animate-pulse"
+                                        >
+                                            RESUMIR
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={completeSession}
+                                        className="flex-1 py-3 rounded-xl font-bold text-xs tracking-wider shadow-lg bg-neuro-red text-white hover:brightness-110 transition-all"
+                                    >
+                                        TERMINAR
+                                    </button>
+                                </div>
+                                <div className="text-center">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                        {session.status === 'paused' ? 'EN PAUSA' : 'SESIÓN ACTIVA'}: <span className="text-white">{session.name}</span>
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
                     {/* Overall Progress */}
-                    <div className="glass p-4 rounded-xl border border-slate-700 mb-8 sticky top-0 z-40 backdrop-blur-md">
+                    <div className="glass p-4 rounded-xl border border-slate-700 mb-8 mt-4">
                         <div className="flex justify-between items-center mb-2">
                             <span className="text-xs font-bold text-slate-400 uppercase">Progreso del Proyecto</span>
-                            <span className="text-neuro-cyan font-mono font-bold">{calculateProgress()}%</span>
+                            <div className="flex gap-4 items-center">
+                                <button onClick={resetProgress} className="text-[10px] text-neuro-red font-bold hover:underline">REINICIAR</button>
+                                <span className="text-neuro-cyan font-mono font-bold">{calculateProgress()}%</span>
+                            </div>
                         </div>
                         <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
                             <div
@@ -302,15 +519,16 @@ export const CortexModule: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="absolute left-[19px] top-24 bottom-0 w-0.5 bg-slate-800 z-0"></div>
+                    <div className="absolute left-[19px] top-48 bottom-0 w-0.5 bg-slate-800 z-0"></div>
 
                     {DEEP_STUDY_FLOW.map((phase) => {
                         const unlocked = isPhaseUnlocked(phase.id);
                         const allDone = phase.steps.every(s => studyProgress.includes(s.id));
 
                         return (
-                            <div key={phase.id} className={`relative z-10 transition-opacity duration-500 ${unlocked ? 'opacity-100' : 'opacity-30 blur-[2px] pointer-events-none'}`}>
-                                <div className="flex items-center gap-4 mb-4">
+                            <React.Fragment key={phase.id}>
+                                <div className={`relative z-10 transition-opacity duration-500 ${unlocked ? 'opacity-100' : 'opacity-30 blur-[2px] pointer-events-none'}`}>
+                                    <div className="flex items-center gap-4 mb-4">
                                     <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border-2 shrink-0 ${allDone ? 'bg-neuro-green text-black border-neuro-green' : unlocked ? 'bg-neuro-bg text-neuro-cyan border-neuro-cyan' : 'bg-slate-900 text-slate-600 border-slate-800'}`}>
                                         {allDone ? '✓' : phase.id}
                                     </div>
@@ -326,14 +544,14 @@ export const CortexModule: React.FC = () => {
                                         return (
                                             <div
                                                 key={step.id}
-                                                className={`p-3 rounded-lg border flex items-center gap-3 transition-colors ${checked ? 'bg-slate-900/50 border-neuro-green/30' : 'bg-slate-800/20 border-slate-700 hover:border-slate-500'}`}
+                                                onClick={() => toggleStep(step.id)}
+                                                className={`p-3 rounded-lg border flex items-center gap-3 transition-colors cursor-pointer ${checked ? 'bg-slate-900/50 border-neuro-green/30' : 'bg-slate-800/20 border-slate-700 hover:border-slate-500'}`}
                                             >
-                                                <button 
-                                                    onClick={() => toggleStep(step.id)}
+                                                <div
                                                     className={`w-6 h-6 rounded border flex items-center justify-center transition-all ${checked ? 'bg-neuro-green border-neuro-green text-black' : 'bg-transparent border-slate-500 hover:border-white'}`}
                                                 >
                                                     {checked && '✓'}
-                                                </button>
+                                                </div>
 
                                                 <div className="flex-1">
                                                     <span className={`text-sm font-medium block ${checked ? 'text-slate-400 line-through' : 'text-slate-200'}`}>
@@ -348,7 +566,10 @@ export const CortexModule: React.FC = () => {
 
                                                 {step.type === 'timer' && !checked && (
                                                     <button
-                                                        onClick={() => setActiveTimer({ type: step.timerType!, duration: step.duration, stepId: step.id })}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleTimerRequest(step);
+                                                        }}
                                                         className="px-3 py-1 bg-neuro-purple/20 text-neuro-purple border border-neuro-purple/50 rounded text-xs font-bold hover:bg-neuro-purple hover:text-white transition-colors"
                                                     >
                                                         INICIAR
@@ -357,8 +578,21 @@ export const CortexModule: React.FC = () => {
                                             </div>
                                         );
                                     })}
+                                    </div>
                                 </div>
-                            </div>
+
+                                {phase.id === 1 && session.status === 'idle' && (
+                                    <div className="my-12 flex justify-center animate-fadeIn">
+                                        <button
+                                            onClick={() => initiateSession("Rutina de Estudio Profundo", 90 * 60 * 1000)}
+                                            className="group relative bg-neuro-purple text-white px-8 py-5 rounded-2xl font-black text-lg shadow-[0_0_40px_rgba(112,0,255,0.4)] hover:scale-105 transition-all overflow-hidden"
+                                        >
+                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:animate-[shimmer_1.5s_infinite]"></div>
+                                            INICIAR RUTINA DE ESTUDIO (90 MIN)
+                                        </button>
+                                    </div>
+                                )}
+                            </React.Fragment>
                         );
                     })}
 
@@ -408,6 +642,8 @@ export const CortexModule: React.FC = () => {
                             <li className="flex items-center gap-2"><span className="text-neuro-green">✓</span> Audio en Rango Dinámico Alto</li>
                             <li className="flex items-center gap-2"><span className="text-neuro-green">✓</span> FOV a 90-100 (Visión Periférica)</li>
                             <li className="flex items-center gap-2"><span className="text-neuro-green">✓</span> Sin Viaje Rápido (Permadeath Mental)</li>
+                            <li className="flex items-center gap-2"><span className="text-neuro-green">✓</span> Notificaciones del Celular Desactivadas</li>
+                            <li className="flex items-center gap-2"><span className="text-neuro-green">✓</span> Luces del entorno atenuadas</li>
                         </ul>
                     </div>
 

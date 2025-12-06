@@ -53,7 +53,7 @@ const TOOLS = [
         title: 'Visión Panorámica', 
         color: 'blue', 
         time: '2 min',
-        desc: 'Dilatación de la mirada hacia el horizonte. Desactiva el estrés visual y mental (parasimpático) al instante.',
+        desc: 'Busca una ventana o espacio abierto, mira el horizonte y trata de difuminar tu mirada. Desactiva el estrés visual y mental al instante.',
         btnText: 'text-white'
     },
     { 
@@ -79,6 +79,11 @@ const ROUTINES = [
         title: "Energía Máxima (Mañana)",
         desc: "Protocolo para iniciar el día con alta dopamina y enfoque láser.",
         steps: ['active', 'gaze', 'focus']
+    },
+    {
+        title: "Reset Post-Almuerzo",
+        desc: "Combate el 'coma alimenticio' y recupera la agudeza mental para la tarde.",
+        steps: ['active', 'gaze']
     },
     {
         title: "Rescate de Estrés",
@@ -199,11 +204,11 @@ export const FlowModule: React.FC<FlowModuleProps> = ({ onSessionComplete }) => 
             {tab === 'tools' && (
                 <div className="grid md:grid-cols-2 gap-4">
                     {TOOLS.map((tool) => (
-                        <div key={tool.id} className={`glass p-5 rounded-xl border-l-4 border-neuro-${tool.color} relative group hover:bg-slate-800/80 transition-all overflow-hidden`}>
+                        <div key={tool.id} className={`glass p-5 rounded-xl border-l-4 border-neuro-${tool.color} relative group hover:bg-slate-800/80 transition-all overflow-hidden flex flex-col`}>
                             {/* Background gradient hint */}
                             <div className={`absolute inset-0 bg-neuro-${tool.color} opacity-0 group-hover:opacity-5 transition-opacity`}></div>
                             
-                            <div className="relative z-10">
+                            <div className="relative z-10 flex-1 flex flex-col">
                                 <div className="flex justify-between mb-2 items-start">
                                     <h3 className="text-xl font-bold text-white">{tool.title}</h3>
                                     <button 
@@ -213,10 +218,12 @@ export const FlowModule: React.FC<FlowModuleProps> = ({ onSessionComplete }) => 
                                         ⚙️
                                     </button>
                                 </div>
-                                <span className={`text-xs font-mono font-bold text-neuro-${tool.color} bg-slate-900/50 px-2 py-1 rounded mb-3 inline-block`}>
-                                    {tool.time}
-                                </span>
-                                <p className="text-sm text-slate-400 mb-6 min-h-[40px] leading-relaxed">{tool.desc}</p>
+                                <div>
+                                    <span className={`text-xs font-mono font-bold text-neuro-${tool.color} bg-slate-900/50 px-2 py-1 rounded mb-3 inline-block`}>
+                                        {tool.time}
+                                    </span>
+                                </div>
+                                <p className="text-base text-slate-400 mb-6 min-h-[60px] leading-relaxed flex-1">{tool.desc}</p>
                                 <div className="flex justify-between items-center mt-auto">
                                     <button 
                                         onClick={() => startSession(tool.id as FlowSessionType)}
@@ -230,30 +237,32 @@ export const FlowModule: React.FC<FlowModuleProps> = ({ onSessionComplete }) => 
                     ))}
                     
                     {/* Lab Section Inline */}
-                    <div className="glass p-5 rounded-xl border border-dashed border-slate-700">
-                        <h3 className="text-white font-bold mb-4 flex items-center gap-2">
-                             ⚗️ Laboratorio
-                        </h3>
-                         <div className="grid grid-cols-1 gap-2 mb-4">
-                            {PRESETS.map((preset, idx) => (
-                                <div key={idx} className="bg-slate-900/30 border border-slate-800 rounded mb-2 overflow-hidden">
-                                    <button
-                                        onClick={() => startSession('custom', preset.pattern)}
-                                        className="w-full text-left p-2 hover:bg-white/5 transition-colors flex justify-between items-center border-b border-slate-800/50"
-                                    >
-                                        <div className="font-bold text-slate-300 text-xs">{preset.name}</div>
-                                        <span className="text-[9px] bg-slate-800 px-1.5 py-0.5 rounded text-neuro-cyan tracking-wider">INICIAR</span>
-                                    </button>
-                                    <div className="px-2 py-2 bg-black/20">
-                                        <p className="text-xs text-slate-400 mb-1.5">{preset.desc}</p>
-                                        <p className="text-[11px] text-slate-500 italic border-l-2 border-neuro-purple/30 pl-2 leading-relaxed">
-                                            {preset.info}
-                                        </p>
+                    <div className="glass p-5 rounded-xl border border-dashed border-slate-700 flex flex-col justify-between">
+                        <div>
+                            <h3 className="text-white font-bold mb-4 flex items-center gap-2">
+                                 ⚗️ Laboratorio
+                            </h3>
+                             <div className="grid grid-cols-1 gap-2 mb-4">
+                                {PRESETS.map((preset, idx) => (
+                                    <div key={idx} className="bg-slate-900/30 border border-slate-800 rounded mb-2 overflow-hidden">
+                                        <button
+                                            onClick={() => startSession('custom', preset.pattern)}
+                                            className="w-full text-left p-3 hover:bg-white/5 transition-colors flex justify-between items-center border-b border-slate-800/50"
+                                        >
+                                            <div className="font-bold text-slate-300 text-sm">{preset.name}</div>
+                                            <span className="text-[9px] bg-slate-800 px-1.5 py-0.5 rounded text-neuro-cyan tracking-wider">INICIAR</span>
+                                        </button>
+                                        <div className="px-3 py-3 bg-black/20">
+                                            <p className="text-sm text-slate-400 mb-2">{preset.desc}</p>
+                                            <p className="text-xs text-slate-500 italic border-l-2 border-neuro-purple/30 pl-2 leading-relaxed">
+                                                {preset.info}
+                                            </p>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
-                        <button onClick={(e) => openSettings(e, 'custom')} className="w-full py-2 bg-slate-800 text-slate-300 rounded-lg font-bold text-xs hover:bg-slate-700">
+                        <button onClick={(e) => openSettings(e, 'custom')} className="w-full py-3 bg-slate-800 text-slate-300 rounded-lg font-bold text-xs hover:bg-slate-700 mt-2">
                             + PERSONALIZAR
                         </button>
                     </div>
@@ -265,7 +274,7 @@ export const FlowModule: React.FC<FlowModuleProps> = ({ onSessionComplete }) => 
                     {ROUTINES.map((routine, idx) => (
                         <div key={idx} className="glass p-6 rounded-xl border-l-4 border-white/20">
                             <h3 className="text-xl font-bold text-white mb-1">{routine.title}</h3>
-                            <p className="text-sm text-slate-400 mb-4">{routine.desc}</p>
+                            <p className="text-base text-slate-400 mb-4">{routine.desc}</p>
                             
                             <div className="flex flex-col gap-2 relative">
                                 {/* Connector Line */}
