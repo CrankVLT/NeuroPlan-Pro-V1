@@ -18,24 +18,31 @@ const NSDR_SCRIPT = [
 
 export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExit: () => void; onComplete: () => void }> = ({ type, config, onExit, onComplete }) => {
     const audio = useAudio();
-    // Start in 'paused' state to wait for user interaction to resume audio context
     const [status, setStatus] = useState<'idle' | 'running' | 'paused' | 'rest'>('paused');
     const [timeLeft, setTimeLeft] = useState(0);
     const [totalDuration, setTotalDuration] = useState(0);
     const [phase, setPhase] = useState<string>('Listo');
     const [cycleCount, setCycleCount] = useState(0);
     const [scale, setScale] = useState(1);
+    const [stepDuration, setStepDuration] = useState(1);
     
-    const [phaseTimeLeft, setPhaseTimeLeft] = useState<number>(0);
+    // UI Visuals
     const [activeSubtitle, setActiveSubtitle] = useState("Toca INICIAR para comenzar");
     const [audioMode, setAudioMode] = useState<'brown' | '40hz' | 'silent'>('brown');
     const [isResting, setIsResting] = useState(false);
+    const [isMuted, setIsMuted] = useState(false); // Track mute state for UI
     
     // Refs
     const timerRef = useRef<number | null>(null);
     const breathingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const phaseIntervalRef = useRef<number | null>(null); 
     const isMountedRef = useRef(true);
+
+    // Mute Handler
+    const toggleMute = () => {
+        audio.toggleMute();
+        setIsMuted(prev => !prev);
+    };
 
     // Audio Effect Logic
     useEffect(() => {
@@ -64,13 +71,15 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
             duration = Number(config.duration) || 60;
         } else if (type === 'focus' || type === 'nsdr') {
             duration = (Number(config.duration) || 20) * 60;
+        } else if (config.duration) {
+             // For custom timers passed via config (like in Deep Study Flow)
+             duration = Number(config.duration) * 60;
         }
         
         setTimeLeft(duration);
         setTotalDuration(duration);
         setCycleCount(0);
         setIsResting(false);
-        // Do not auto-start here. User must click "INICIAR"
         
         return () => {
             isMountedRef.current = false;
@@ -82,7 +91,7 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
     }, []); 
 
     const handleStart = () => {
-        audio.init(); // Resume AudioContext on user gesture
+        audio.init();
         setStatus('running');
         setPhase('Preparado');
         
@@ -107,12 +116,13 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
                         if (type === 'focus' && !isResting) {
                             setPhase("Tiempo de Enfoque Completado");
                             setStatus('idle');
-                            onComplete(); 
+                            // Defer onComplete to avoid update during render
+                            setTimeout(() => onComplete(), 0);
                         } else {
                             setStatus('idle');
                             setPhase("Sesión Completada");
                             setActiveSubtitle("Sesión finalizada. Abre los ojos suavemente.");
-                            onComplete();
+                            setTimeout(() => onComplete(), 0);
                         }
                         return 0;
                     }
@@ -151,6 +161,8 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
             duration = Number(config.duration) || 60;
         } else if (type === 'focus' || type === 'nsdr') {
             duration = (Number(config.duration) || 20) * 60;
+        } else if (config.duration) {
+            duration = Number(config.duration) * 60;
         }
         
         setTimeLeft(duration);
@@ -165,29 +177,20 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
     // Breathing Logic
     useEffect(() => {
         if (['focus', 'nsdr', 'gaze', 'panoramic'].includes(type) || status !== 'running') return;
-        
+        if (config.duration && type !== 'active' && type !== 'tummo' && type !== 'calm' && type !== 'custom') return; // If it's just a timer, don't do breathing logic
+
         const breathConfig = config;
         
+        // Helper to schedule next step
         const runStep = (text: string, s: number, dur: number, tone: 'in' | 'out' | 'hold', next: () => void) => {
             if (!isMountedRef.current || status !== 'running') return;
             
             setPhase(text);
+            setStepDuration(dur);
             setScale(s);
             audio.playTone(tone, dur);
 
-            setPhaseTimeLeft(Math.ceil(dur));
-            if (phaseIntervalRef.current) clearInterval(phaseIntervalRef.current);
-            
-            const startTime = Date.now();
-            phaseIntervalRef.current = window.setInterval(() => {
-                const elapsed = (Date.now() - startTime) / 1000;
-                const remaining = Math.max(0, Math.ceil(dur - elapsed));
-                setPhaseTimeLeft(remaining);
-                if (remaining <= 0 && phaseIntervalRef.current) clearInterval(phaseIntervalRef.current);
-            }, 100);
-
             breathingTimeoutRef.current = setTimeout(() => {
-                if (phaseIntervalRef.current) clearInterval(phaseIntervalRef.current);
                 next();
             }, dur * 1000);
         };
@@ -198,12 +201,13 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
                 setStatus('idle');
                 audio.playBeep();
                 setPhase("Completado");
-                onComplete();
+                setTimeout(() => onComplete(), 0);
                 return;
             }
             if (breathConfig.double) {
-                runStep("INHALA", 1.3, 1.5, 'in', () => 
-                    runStep("INHALA", 1.5, 0.5, 'in', () => 
+                // Calm / Recovery: Inhale 80%, Inhale 100%, Exhale
+                runStep("INHALA (80%)", 1.3, 1.5, 'in', () =>
+                    runStep("INHALA (100%)", 1.5, 0.8, 'in', () =>
                         runStep("EXHALA", 1.0, breathConfig.exhale, 'out', () => 
                             runStep("ESPERA", 1.0, 1.0, 'hold', () => {
                                 setCycleCount(c => c + 1);
@@ -234,7 +238,6 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
 
         return () => { 
             if (breathingTimeoutRef.current) clearTimeout(breathingTimeoutRef.current);
-            if (phaseIntervalRef.current) clearInterval(phaseIntervalRef.current);
         };
     }, [status, type, cycleCount]); 
 
@@ -280,27 +283,34 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
         return map[type] || type.toUpperCase();
     };
 
+    // Check if it's a breathing session or just a timer
+    const isBreathingSession = !['focus', 'nsdr', 'gaze', 'panoramic'].includes(type) && !config.duration;
+
     return createPortal(
         <div className="fixed inset-0 z-[200] bg-neuro-bg flex flex-col items-center justify-center p-6 animate-fadeIn">
             <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 ${bgClass} rounded-full mix-blend-screen filter blur-[120px] opacity-20 animate-pulse-slow pointer-events-none`}></div>
 
-            {/* Top Bar - Increased padding top (pt-24) to avoid overlap with mobile notch/header area */}
+            {/* Top Bar */}
             <div className="absolute top-0 left-0 w-full p-6 flex justify-between items-center z-10 pt-24 md:pt-6">
                 <h3 className="text-xs font-mono font-bold tracking-[0.2em] text-slate-500 uppercase">
                     SESIÓN {getSessionTitle()} {isResting ? '(DESCANSO)' : ''}
                 </h3>
                 <div className="flex gap-4">
-                    <button onClick={audio.toggleMute} className="text-slate-400 hover:text-white">🔇</button>
+                    <button
+                        onClick={toggleMute}
+                        className={`text-2xl transition-all duration-300 ${isMuted ? 'text-slate-600 scale-90' : 'text-white scale-110'}`}
+                    >
+                        {isMuted ? '🔇' : '🔊'}
+                    </button>
                     <button onClick={onExit} className="p-2 rounded-full bg-slate-800/50 hover:bg-slate-700 text-white">✕</button>
                 </div>
             </div>
 
             {/* Main Visualizer */}
             <div className="relative z-10 flex flex-col items-center w-full max-w-lg mb-10">
-                {/* Visualizer for Time-based sessions */}
-                {['focus', 'nsdr', 'gaze', 'panoramic'].includes(type) ? (
-                    <div className="text-center w-full">
-                        <div className={`text-8xl font-black text-white font-mono tracking-tighter mb-8 tabular-nums`}>
+                {!isBreathingSession ? (
+                    <div className="text-center w-full relative">
+                        <div className={`${['gaze', 'panoramic'].includes(type) ? 'fixed bottom-8 right-8 text-2xl opacity-30 hover:opacity-100' : 'text-8xl mb-8'} font-black text-white font-mono tracking-tighter tabular-nums transition-all duration-500`}>
                             {formatTime(timeLeft)}
                         </div>
                         
@@ -311,12 +321,17 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
                                     <button onClick={() => setAudioMode('40hz')} className={`px-3 py-1 text-xs font-mono rounded ${audioMode === '40hz' ? 'bg-neuro-purple text-white' : 'text-slate-400'}`}>40HZ</button>
                                     <button onClick={() => setAudioMode('silent')} className={`px-3 py-1 text-xs font-mono rounded ${audioMode === 'silent' ? 'bg-neuro-purple text-white' : 'text-slate-400'}`}>SILENCIO</button>
                                 </div>
-                                <span className="text-[10px] text-slate-500 uppercase tracking-widest">
+                                <p className="text-[10px] text-slate-400 text-center max-w-[250px] leading-tight min-h-[2.5em]">
+                                    {audioMode === 'brown' && "Ruido de baja frecuencia. Enmascara el entorno y calma la amígdala."}
+                                    {audioMode === '40hz' && "Ondas Gamma. Sincroniza la actividad neuronal para máxima concentración."}
+                                    {audioMode === 'silent' && "Ausencia de estímulos. Ideal si tu entorno ya es silencioso."}
+                                </p>
+                                <span className="text-[10px] text-slate-500 uppercase tracking-widest mt-2">
                                     {status === 'idle' ? 'BLOQUE COMPLETADO' : 'TRABAJO PROFUNDO ACTIVO'}
                                 </span>
                             </div>
                         )}
-                        {/* ... Rest of visualizers ... */}
+                        {/* NSDR */}
                          {type === 'nsdr' && (
                             <div className="w-full mt-8 px-4">
                                 <div className="min-h-[60px] flex items-center justify-center mb-6">
@@ -354,21 +369,19 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
                     // Breathing Visualizer
                     <>
                         <div 
-                            className={`w-64 h-64 rounded-full border-4 ${borderClass} flex flex-col items-center justify-center transition-all duration-[1000ms] shadow-[0_0_50px_rgba(0,0,0,0.5)]`}
+                            className={`w-64 h-64 rounded-full border-4 ${borderClass} flex flex-col items-center justify-center transition-all shadow-[0_0_50px_rgba(0,0,0,0.5)]`}
                             style={{ 
                                 transform: `scale(${scale})`,
+                                transitionDuration: `${stepDuration}s`,
+                                transitionTimingFunction: 'ease-in-out',
                                 borderColor: scale > 1.2 ? 'white' : undefined,
                                 boxShadow: scale > 1.2 ? `0 0 80px ${hexColor}` : 'none'
                             }}
                         >
-                            <span className="text-xl font-bold text-slate-300 uppercase tracking-widest mb-1">{phase}</span>
-                            {status === 'running' && (
-                                <span className="text-6xl font-black text-white drop-shadow-lg tabular-nums">
-                                    {Math.max(1, phaseTimeLeft)}
-                                </span>
-                            )}
+                            <span className="text-xl font-bold text-slate-300 uppercase tracking-widest mb-1 text-center px-2 leading-tight">{phase}</span>
+                            {/* Removed the large number countdown to reduce distraction as requested */}
                         </div>
-                        <div className="mt-12 font-mono text-slate-500">
+                        <div className="fixed bottom-48 font-mono text-slate-500 pointer-events-none z-0">
                             CICLO <span className="text-white text-xl">{cycleCount}</span> <span className="text-xs">/ {config.cycles}</span>
                         </div>
                     </>

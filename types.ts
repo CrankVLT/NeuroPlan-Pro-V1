@@ -1,4 +1,4 @@
-export type ViewState = 'dashboard' | 'plan' | 'flow' | 'science' | 'settings' | 'cortex';
+export type ViewState = 'dashboard' | 'plan' | 'flow' | 'science' | 'settings' | 'cortex' | 'welcome';
 
 // --- CHEPE OS TYPES (OKR STRUCTURE) ---
 

@@ -92,28 +92,25 @@ const ROUTINES = [
     }
 ];
 
-const GAMER_ROUTINES = [
-    {
-        title: "Inmersión Acción (FPS/Horror)",
-        desc: "Simula el estado de alerta del personaje. Apaga el análisis, enciende el instinto.",
-        steps: ['calm', 'gaze', 'active']
-    },
-    {
-        title: "Inmersión Rol (RPG/Open World)",
-        desc: "Entra en el mundo con calma y presencia. Ideal para juegos de historia.",
-        steps: ['calm', 'gaze', 'panoramic']
-    },
-    {
-        title: "Tilt Reset / Frustración",
-        desc: "Úsalo cuando mueras repetidamente o te pierdas. Baja la ira, mantén el foco.",
-        steps: ['calm', 'panoramic']
-    }
-];
-
 const PRESETS = [
-    { name: "Box Breathing", desc: "Estabilización táctica (Navy SEALs).", pattern: { inhale: 4, hold1: 4, exhale: 4, hold2: 4, cycles: 12 } },
-    { name: "4-7-8 Relax", desc: "Inducción al sueño parasimpático.", pattern: { inhale: 4, hold1: 7, exhale: 8, hold2: 0, cycles: 10 } },
-    { name: "Coherencia", desc: "Sincronía cardio-cerebral.", pattern: { inhale: 5.5, hold1: 0, exhale: 5.5, hold2: 0, cycles: 30 } }
+    {
+        name: "Box Breathing",
+        desc: "Estabilización táctica (Navy SEALs).",
+        info: "Qué: Patrón cuadrado (4-4-4-4). Cómo: Inhala, retén, exhala, sostén vacío. Por qué: Reestablece el ritmo respiratorio normal y reduce el pánico instantáneamente.",
+        pattern: { inhale: 4, hold1: 4, exhale: 4, hold2: 4, cycles: 12 }
+    },
+    {
+        name: "4-7-8 Relax",
+        desc: "Inducción al sueño parasimpático.",
+        info: "Qué: Exhalación prolongada. Cómo: Inhala 4s, retén 7s, exhala 8s. Por qué: La exhalación larga activa el nervio vago, disminuyendo la frecuencia cardíaca.",
+        pattern: { inhale: 4, hold1: 7, exhale: 8, hold2: 0, cycles: 10 }
+    },
+    {
+        name: "Coherencia",
+        desc: "Sincronía cardio-cerebral.",
+        info: "Qué: 5.5s inhalar, 5.5s exhalar. Cómo: Sin pausas, flujo continuo. Por qué: Maximiza la Variabilidad de la Frecuencia Cardíaca (HRV) y el equilibrio emocional.",
+        pattern: { inhale: 5.5, hold1: 0, exhale: 5.5, hold2: 0, cycles: 30 }
+    }
 ];
 
 // --- MAIN MODULE (EXPORTED LAST) ---
@@ -125,7 +122,7 @@ interface FlowModuleProps {
 export const FlowModule: React.FC<FlowModuleProps> = ({ onSessionComplete }) => {
     const [activeSession, setActiveSession] = useState<{ type: FlowSessionType, config: any } | null>(null);
     const [editingTool, setEditingTool] = useState<{ id: string, config: any } | null>(null);
-    const [tab, setTab] = useState<'tools' | 'routines' | 'gaming'>('tools');
+    const [tab, setTab] = useState<'tools' | 'routines'>('tools');
     const [showDiagnostic, setShowDiagnostic] = useState(false);
 
     const startSession = (type: FlowSessionType, config?: any) => {
@@ -197,12 +194,6 @@ export const FlowModule: React.FC<FlowModuleProps> = ({ onSessionComplete }) => 
                 >
                     RUTINAS
                 </button>
-                <button 
-                    onClick={() => setTab('gaming')}
-                    className={`px-6 py-3 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${tab === 'gaming' ? 'border-neuro-purple text-neuro-purple' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
-                >
-                    GAMING 🎮
-                </button>
             </div>
             
             {tab === 'tools' && (
@@ -222,7 +213,7 @@ export const FlowModule: React.FC<FlowModuleProps> = ({ onSessionComplete }) => 
                                         ⚙️
                                     </button>
                                 </div>
-                                <span className={`text-[10px] font-mono font-bold text-neuro-${tool.color} bg-slate-900/50 px-2 py-1 rounded mb-3 inline-block`}>
+                                <span className={`text-xs font-mono font-bold text-neuro-${tool.color} bg-slate-900/50 px-2 py-1 rounded mb-3 inline-block`}>
                                     {tool.time}
                                 </span>
                                 <p className="text-sm text-slate-400 mb-6 min-h-[40px] leading-relaxed">{tool.desc}</p>
@@ -245,13 +236,21 @@ export const FlowModule: React.FC<FlowModuleProps> = ({ onSessionComplete }) => 
                         </h3>
                          <div className="grid grid-cols-1 gap-2 mb-4">
                             {PRESETS.map((preset, idx) => (
-                                <button 
-                                    key={idx}
-                                    onClick={() => startSession('custom', preset.pattern)}
-                                    className="text-left p-2 rounded border border-slate-800 bg-slate-900/30 hover:bg-neuro-purple/10 hover:border-neuro-purple transition-colors"
-                                >
-                                    <div className="font-bold text-slate-300 text-xs">{preset.name}</div>
-                                </button>
+                                <div key={idx} className="bg-slate-900/30 border border-slate-800 rounded mb-2 overflow-hidden">
+                                    <button
+                                        onClick={() => startSession('custom', preset.pattern)}
+                                        className="w-full text-left p-2 hover:bg-white/5 transition-colors flex justify-between items-center border-b border-slate-800/50"
+                                    >
+                                        <div className="font-bold text-slate-300 text-xs">{preset.name}</div>
+                                        <span className="text-[9px] bg-slate-800 px-1.5 py-0.5 rounded text-neuro-cyan tracking-wider">INICIAR</span>
+                                    </button>
+                                    <div className="px-2 py-2 bg-black/20">
+                                        <p className="text-xs text-slate-400 mb-1.5">{preset.desc}</p>
+                                        <p className="text-[11px] text-slate-500 italic border-l-2 border-neuro-purple/30 pl-2 leading-relaxed">
+                                            {preset.info}
+                                        </p>
+                                    </div>
+                                </div>
                             ))}
                         </div>
                         <button onClick={(e) => openSettings(e, 'custom')} className="w-full py-2 bg-slate-800 text-slate-300 rounded-lg font-bold text-xs hover:bg-slate-700">
@@ -296,62 +295,6 @@ export const FlowModule: React.FC<FlowModuleProps> = ({ onSessionComplete }) => 
                             </div>
                         </div>
                     ))}
-                </div>
-            )}
-
-            {tab === 'gaming' && (
-                <div className="space-y-4 animate-slideUp">
-                    <div className="bg-gradient-to-r from-neuro-purple/20 to-neuro-cyan/20 p-4 rounded-xl border border-white/10 mb-6">
-                        <h3 className="font-bold text-white mb-2">🧠 Modo Inmersión</h3>
-                        <p className="text-xs text-slate-300 leading-relaxed">
-                            Simula la "mente de niño" apagando la corteza prefrontal (juicio) y activando la amígdala (emoción). 
-                            Usa estos protocolos antes de iniciar tu sesión de juego para romper la barrera de incredulidad.
-                        </p>
-                    </div>
-
-                    {GAMER_ROUTINES.map((routine, idx) => (
-                        <div key={idx} className="glass p-6 rounded-xl border-l-4 border-neuro-cyan">
-                            <h3 className="text-xl font-bold text-white mb-1">{routine.title}</h3>
-                            <p className="text-sm text-slate-400 mb-4">{routine.desc}</p>
-                            
-                            <div className="flex flex-col gap-2 relative">
-                                {/* Connector Line */}
-                                <div className="absolute left-[15px] top-4 bottom-4 w-0.5 bg-slate-800 -z-10"></div>
-                                
-                                {routine.steps.map((stepId, stepIdx) => {
-                                    const tool = TOOLS.find(t => t.id === stepId);
-                                    if (!tool) return null;
-                                    return (
-                                        <div key={stepIdx} className="flex items-center gap-4 bg-slate-900/50 p-3 rounded-lg border border-slate-800 hover:border-slate-600 transition-colors">
-                                            <div className={`w-8 h-8 rounded-full bg-neuro-${tool.color}/20 flex items-center justify-center text-[10px] font-bold text-neuro-${tool.color} border border-neuro-${tool.color}/50`}>
-                                                {stepIdx + 1}
-                                            </div>
-                                            <div className="flex-1">
-                                                <h4 className="font-bold text-slate-200 text-sm">{tool.title}</h4>
-                                                <span className="text-[10px] text-slate-500">{tool.time}</span>
-                                            </div>
-                                            <button 
-                                                onClick={() => startSession(tool.id as FlowSessionType)}
-                                                className="px-4 py-1.5 bg-slate-800 hover:bg-white text-white hover:text-black rounded text-xs font-bold transition-colors"
-                                            >
-                                                IR
-                                            </button>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    ))}
-                    
-                    <div className="mt-8 p-4 border border-dashed border-slate-700 rounded-xl">
-                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">CHECKLIST DE INMERSIÓN</h4>
-                        <ul className="space-y-2 text-sm text-slate-400">
-                            <li className="flex items-center gap-2"><span className="text-neuro-green">✓</span> HUD / Minimapa Desactivado</li>
-                            <li className="flex items-center gap-2"><span className="text-neuro-green">✓</span> Audio en Rango Dinámico Alto</li>
-                            <li className="flex items-center gap-2"><span className="text-neuro-green">✓</span> FOV a 90-100 (Visión Periférica)</li>
-                            <li className="flex items-center gap-2"><span className="text-neuro-green">✓</span> Sin Viaje Rápido (Permadeath Mental)</li>
-                        </ul>
-                    </div>
                 </div>
             )}
 
