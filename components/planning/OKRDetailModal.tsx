@@ -72,22 +72,21 @@ export const OKRDetailModal: React.FC<OKRDetailModalProps> = ({ goal, onClose, o
         onUpdate({ ...goal, keyResults: updatedKRs });
     };
 
+    // Helper for inputs to avoid leading zeros
+    const handleNumberInput = (val: string) => {
+        if (val === '') return 0;
+        return Number(val);
+    };
+
     return (
         <div className="fixed inset-0 z-[60] flex flex-col bg-neuro-bg/95 backdrop-blur-xl animate-[slideIn_0.2s_ease-out]">
-            {/* Header - Aumentado pt-14 para móviles */}
+            {/* Header */}
             <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/50 pt-14 md:pt-4">
                 <button onClick={onClose} className="text-slate-400 hover:text-white flex items-center gap-2 font-bold text-sm">
-                    ← VOLVER
+                    ← ATRÁS
                 </button>
-                <div className="flex gap-4">
-                    <button onClick={onDelete} className="text-slate-500 hover:text-neuro-red">
-                        <span className="hidden md:inline">ELIMINAR</span>
-                        <span className="md:hidden text-lg">🗑</span>
-                    </button>
-                    <button onClick={onComplete} className="text-neuro-green font-bold hover:text-white">
-                        <span className="hidden md:inline">COMPLETAR OBJETIVO</span>
-                        <span className="md:hidden text-lg border border-neuro-green rounded-full w-8 h-8 flex items-center justify-center">✓</span>
-                    </button>
+                <div className="font-mono text-xs text-slate-500 font-bold uppercase tracking-widest">
+                    EDITANDO OBJETIVO
                 </div>
             </div>
 
@@ -142,15 +141,17 @@ export const OKRDetailModal: React.FC<OKRDetailModalProps> = ({ goal, onClose, o
                                                 <input 
                                                     type="number" 
                                                     className="w-12 bg-transparent text-right outline-none text-neuro-cyan font-bold"
-                                                    value={kr.current}
-                                                    onChange={(e) => updateKR(kr.id, { current: Number(e.target.value) })}
+                                                    value={kr.current || ''}
+                                                    placeholder="0"
+                                                    onChange={(e) => updateKR(kr.id, { current: handleNumberInput(e.target.value) })}
                                                 />
                                                 <span className="text-slate-500">de</span>
                                                 <input 
                                                     type="number" 
                                                     className="w-12 bg-transparent text-right outline-none text-white"
-                                                    value={kr.target}
-                                                    onChange={(e) => updateKR(kr.id, { target: Number(e.target.value) })}
+                                                    value={kr.target || ''}
+                                                    placeholder="0"
+                                                    onChange={(e) => updateKR(kr.id, { target: handleNumberInput(e.target.value) })}
                                                 />
                                                 <input 
                                                     className="min-w-[20px] max-w-[60px] bg-transparent text-center outline-none text-slate-500 uppercase truncate"
@@ -231,7 +232,13 @@ export const OKRDetailModal: React.FC<OKRDetailModalProps> = ({ goal, onClose, o
                                 <div className="flex gap-4 mb-3">
                                     <div className="flex-1">
                                         <label className="text-[10px] text-slate-500 block mb-1">META</label>
-                                        <input type="number" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none text-right text-sm" value={krTarget} onChange={e => setKrTarget(Number(e.target.value))} />
+                                        <input
+                                            type="number"
+                                            className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none text-right text-sm"
+                                            value={krTarget || ''}
+                                            placeholder="0"
+                                            onChange={e => setKrTarget(handleNumberInput(e.target.value))}
+                                        />
                                     </div>
                                     <div className="w-24">
                                         <label className="text-[10px] text-slate-500 block mb-1">UNIDAD</label>
@@ -252,6 +259,30 @@ export const OKRDetailModal: React.FC<OKRDetailModalProps> = ({ goal, onClose, o
                             </button>
                         )}
                     </div>
+                </div>
+            </div>
+
+            {/* Footer / Actions Bar */}
+            <div className="p-4 border-t border-slate-800 bg-slate-900/90 flex gap-3 z-50">
+                <button
+                    onClick={onDelete}
+                    className="px-4 py-3 bg-slate-800/50 text-neuro-red border border-slate-700 hover:bg-neuro-red/10 rounded-lg font-bold text-xs"
+                >
+                    ELIMINAR
+                </button>
+                <div className="flex-1 flex gap-3">
+                    <button
+                        onClick={onComplete}
+                        className="flex-1 px-4 py-3 bg-slate-800 text-neuro-green border border-slate-700 hover:bg-neuro-green/10 rounded-lg font-bold text-xs"
+                    >
+                        COMPLETAR
+                    </button>
+                    <button
+                        onClick={onClose}
+                        className="flex-1 px-4 py-3 bg-neuro-purple text-white hover:brightness-110 rounded-lg font-bold text-sm shadow-[0_0_15px_rgba(112,0,255,0.3)]"
+                    >
+                        GUARDAR
+                    </button>
                 </div>
             </div>
         </div>

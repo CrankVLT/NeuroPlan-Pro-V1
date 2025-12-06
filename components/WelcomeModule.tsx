@@ -13,12 +13,12 @@ const SECTIONS = [
                     <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
                         <span className="text-2xl mb-2 block">🧠</span>
                         <h4 className="font-bold text-white mb-1">Mente</h4>
-                        <p className="text-xs text-slate-400">Herramientas basadas en neurociencia para regular tu estado de ánimo y foco.</p>
+                        <p className="text-sm text-slate-400 leading-relaxed">Herramientas basadas en neurociencia para regular tu estado de ánimo y foco.</p>
                     </div>
                     <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
                         <span className="text-2xl mb-2 block">📊</span>
                         <h4 className="font-bold text-white mb-1">Estrategia</h4>
-                        <p className="text-xs text-slate-400">Metodología OKR para transformar sueños abstractos en datos accionables.</p>
+                        <p className="text-sm text-slate-400 leading-relaxed">Metodología OKR para transformar sueños abstractos en datos accionables.</p>
                     </div>
                 </div>
             </div>
@@ -29,21 +29,21 @@ const SECTIONS = [
         subtitle: "Objetivos y Resultados Clave",
         content: (
             <div className="space-y-4">
-                <p className="text-sm text-slate-400 italic mb-4">"No puedes gestionar lo que no puedes medir."</p>
-                <p className="text-slate-300">
+                <p className="text-base text-slate-400 italic mb-4">"No puedes gestionar lo que no puedes medir."</p>
+                <p className="text-lg text-slate-300">
                     Los <span className="text-white font-bold">OKR (Objectives and Key Results)</span> son el sistema secreto utilizado por gigantes como Google e Intel para lograr lo imposible.
                 </p>
-                <ul className="space-y-3 mt-4 text-sm text-slate-300">
+                <ul className="space-y-4 mt-4 text-base text-slate-300">
                     <li className="flex gap-3">
-                        <span className="text-neuro-purple font-bold">EL QUÉ (Objetivo):</span>
+                        <span className="text-neuro-purple font-bold whitespace-nowrap">EL QUÉ (Objetivo):</span>
                         <span>Tu meta inspiradora. Lo que quieres lograr. Ej: "Convertirme en un atleta de élite".</span>
                     </li>
                     <li className="flex gap-3">
-                        <span className="text-neuro-green font-bold">EL CÓMO (Key Result):</span>
+                        <span className="text-neuro-green font-bold whitespace-nowrap">EL CÓMO (Key Result):</span>
                         <span>La métrica innegable de éxito. Ej: "Correr 10k en menos de 45 min".</span>
                     </li>
                     <li className="flex gap-3">
-                        <span className="text-neuro-cyan font-bold">EL PORQUÉ:</span>
+                        <span className="text-neuro-cyan font-bold whitespace-nowrap">EL PORQUÉ:</span>
                         <span>Para dejar de "estar ocupado" y empezar a ser productivo. Los OKRs te dan un norte claro.</span>
                     </li>
                 </ul>
@@ -55,22 +55,22 @@ const SECTIONS = [
         subtitle: "Configura tu Éxito",
         content: (
             <div className="space-y-4">
-                <p className="text-slate-300 mb-4">
+                <p className="text-lg text-slate-300 mb-4">
                     En la pestaña <span className="text-neuro-purple font-bold">PLAN</span>, definirás tus batallas diarias, semanales y trimestrales.
                 </p>
 
-                <div className="space-y-4 bg-slate-900/30 p-4 rounded-xl border border-slate-800">
+                <div className="space-y-6 bg-slate-900/30 p-6 rounded-xl border border-slate-800">
                     <div>
-                        <h5 className="font-bold text-white text-sm">1. Crea un Objetivo</h5>
-                        <p className="text-xs text-slate-400">Define claramente qué quieres lograr.</p>
+                        <h5 className="font-bold text-white text-base mb-1">1. Crea un Objetivo</h5>
+                        <p className="text-sm text-slate-400 leading-relaxed">Define claramente qué quieres lograr.</p>
                     </div>
                     <div>
-                        <h5 className="font-bold text-white text-sm">2. Añade Key Results (KRs)</h5>
-                        <p className="text-xs text-slate-400">Establece metas numéricas (Target) y actualiza tu progreso (Current) diariamente.</p>
+                        <h5 className="font-bold text-white text-base mb-1">2. Añade Key Results (KRs)</h5>
+                        <p className="text-sm text-slate-400 leading-relaxed">Establece metas numéricas (Target) y actualiza tu progreso (Current) diariamente.</p>
                     </div>
                     <div>
-                        <h5 className="font-bold text-white text-sm">3. Tasa de Éxito</h5>
-                        <p className="text-xs text-slate-400">
+                        <h5 className="font-bold text-white text-base mb-1">3. Tasa de Éxito</h5>
+                        <p className="text-sm text-slate-400 leading-relaxed">
                             La barra superior te mostrará tu rendimiento global. Puedes ajustar la exigencia en
                             <span className="inline-block mx-1 bg-slate-800 px-1 rounded">⚙️ Ajustes</span> para que el sistema sea más o menos estricto con los colores (Verde/Amarillo/Rojo).
                         </p>
@@ -92,13 +92,13 @@ const SECTIONS = [
                     {/* CATEGORÍA: ENERGÍA / DESPERTAR */}
                     <div className="bg-slate-900/50 p-3 rounded-lg border-l-2 border-neuro-red">
                         <div className="flex justify-between items-center mb-1">
-                            <h4 className="font-bold text-white text-sm">Activación / Tummo</h4>
+                            <h4 className="font-bold text-white text-base">Activación / Tummo</h4>
                             <span className="text-[10px] bg-neuro-red/20 text-neuro-red px-2 py-0.5 rounded font-bold uppercase">Quitar Sueño</span>
                         </div>
-                        <p className="text-xs text-slate-400 mb-2">
+                        <p className="text-sm text-slate-400 mb-2 leading-relaxed">
                             Hiperventilación cíclica controlada.
                         </p>
-                        <p className="text-[10px] text-slate-500 italic">
+                        <p className="text-xs text-slate-500 italic leading-relaxed">
                             🧬 <strong className="text-slate-400">Ciencia:</strong> Aumenta drásticamente la epinefrina (adrenalina) y reduce el CO2 en sangre, eliminando la latencia del sueño y generando un estado de alerta inemdiata.
                         </p>
                     </div>
@@ -106,13 +106,13 @@ const SECTIONS = [
                     {/* CATEGORÍA: ENFOQUE */}
                     <div className="bg-slate-900/50 p-3 rounded-lg border-l-2 border-neuro-purple">
                         <div className="flex justify-between items-center mb-1">
-                            <h4 className="font-bold text-white text-sm">Enfoque Visual (Gaze)</h4>
+                            <h4 className="font-bold text-white text-base">Enfoque Visual (Gaze)</h4>
                             <span className="text-[10px] bg-neuro-purple/20 text-neuro-purple px-2 py-0.5 rounded font-bold uppercase">Concentración</span>
                         </div>
-                        <p className="text-xs text-slate-400 mb-2">
+                        <p className="text-sm text-slate-400 mb-2 leading-relaxed">
                             Fijación de la mirada en un punto único.
                         </p>
-                        <p className="text-[10px] text-slate-500 italic">
+                        <p className="text-xs text-slate-500 italic leading-relaxed">
                             🧬 <strong className="text-slate-400">Ciencia:</strong> Al suprimir las microsacadas oculares, se activa el Locus Coeruleus en el tronco encefálico, liberando norepinefrina prefrontal y "anclando" la atención.
                         </p>
                     </div>
@@ -120,13 +120,13 @@ const SECTIONS = [
                     {/* CATEGORÍA: TRABAJO PROFUNDO */}
                     <div className="bg-slate-900/50 p-3 rounded-lg border-l-2 border-neuro-purple">
                         <div className="flex justify-between items-center mb-1">
-                            <h4 className="font-bold text-white text-sm">Trabajo Profundo (90min)</h4>
+                            <h4 className="font-bold text-white text-base">Trabajo Profundo (90min)</h4>
                             <span className="text-[10px] bg-neuro-purple/20 text-neuro-purple px-2 py-0.5 rounded font-bold uppercase">Productividad</span>
                         </div>
-                        <p className="text-xs text-slate-400 mb-2">
+                        <p className="text-sm text-slate-400 mb-2 leading-relaxed">
                             Bloques de trabajo alineados con biología.
                         </p>
-                        <p className="text-[10px] text-slate-500 italic">
+                        <p className="text-xs text-slate-500 italic leading-relaxed">
                             🧬 <strong className="text-slate-400">Ciencia:</strong> Respeta los ciclos Ultradianos del cerebro, maximizando la ventana de alta performance cognitiva antes de que los neuroquímicos se agoten.
                         </p>
                     </div>
@@ -134,13 +134,13 @@ const SECTIONS = [
                     {/* CATEGORÍA: RELAJACIÓN RÁPIDA */}
                     <div className="bg-slate-900/50 p-3 rounded-lg border-l-2 border-neuro-blue">
                         <div className="flex justify-between items-center mb-1">
-                            <h4 className="font-bold text-white text-sm">Visión Panorámica</h4>
+                            <h4 className="font-bold text-white text-base">Visión Panorámica</h4>
                             <span className="text-[10px] bg-neuro-blue/20 text-neuro-blue px-2 py-0.5 rounded font-bold uppercase">Anti-Estrés</span>
                         </div>
-                        <p className="text-xs text-slate-400 mb-2">
+                        <p className="text-sm text-slate-400 mb-2 leading-relaxed">
                             Dilatación de la mirada hacia el horizonte.
                         </p>
-                        <p className="text-[10px] text-slate-500 italic">
+                        <p className="text-xs text-slate-500 italic leading-relaxed">
                             🧬 <strong className="text-slate-400">Ciencia:</strong> Desactiva mecánicamente la respuesta de "lucha o huida" al relajar los músculos ciliares del ojo, enviando una señal de seguridad al sistema parasimpático.
                         </p>
                     </div>
@@ -148,13 +148,13 @@ const SECTIONS = [
                     {/* CATEGORÍA: CALMA */}
                     <div className="bg-slate-900/50 p-3 rounded-lg border-l-2 border-neuro-blue">
                         <div className="flex justify-between items-center mb-1">
-                            <h4 className="font-bold text-white text-sm">Suspiro Fisiológico</h4>
+                            <h4 className="font-bold text-white text-base">Suspiro Fisiológico</h4>
                             <span className="text-[10px] bg-neuro-blue/20 text-neuro-blue px-2 py-0.5 rounded font-bold uppercase">Calma Instantánea</span>
                         </div>
-                        <p className="text-xs text-slate-400 mb-2">
+                        <p className="text-sm text-slate-400 mb-2 leading-relaxed">
                             Doble inhalación por nariz, exhalación larga por boca.
                         </p>
-                        <p className="text-[10px] text-slate-500 italic">
+                        <p className="text-xs text-slate-500 italic leading-relaxed">
                             🧬 <strong className="text-slate-400">Ciencia:</strong> Re-expande los alvéolos pulmonares colapsados, eliminando el exceso de CO2 en sangre y reduciendo la taquicardia en tiempo real.
                         </p>
                     </div>
@@ -162,13 +162,13 @@ const SECTIONS = [
                     {/* CATEGORÍA: DESCANSO / SUEÑO */}
                     <div className="bg-slate-900/50 p-3 rounded-lg border-l-2 border-neuro-green">
                         <div className="flex justify-between items-center mb-1">
-                            <h4 className="font-bold text-white text-sm">NSDR / Yoga Nidra</h4>
+                            <h4 className="font-bold text-white text-base">NSDR / Yoga Nidra</h4>
                             <span className="text-[10px] bg-neuro-green/20 text-neuro-green px-2 py-0.5 rounded font-bold uppercase">Dar Sueño / Restaurar</span>
                         </div>
-                        <p className="text-xs text-slate-400 mb-2">
+                        <p className="text-sm text-slate-400 mb-2 leading-relaxed">
                             Descanso Profundo Sin Dormir.
                         </p>
-                        <p className="text-[10px] text-slate-500 italic">
+                        <p className="text-xs text-slate-500 italic leading-relaxed">
                             🧬 <strong className="text-slate-400">Ciencia:</strong> Reduce la actividad de ondas cerebrales (Alfa/Theta) y restaura los niveles de dopamina en los ganglios basales, acelerando la neuroplasticidad y recuperación.
                         </p>
                     </div>
@@ -182,14 +182,14 @@ const SECTIONS = [
         content: (
             <div className="space-y-4">
                 <div className="border-l-2 border-neuro-cyan pl-4 mb-4">
-                    <h4 className="font-bold text-neuro-cyan">Flujo Cortex (Beta)</h4>
-                    <p className="text-sm text-slate-300">
+                    <h4 className="font-bold text-neuro-cyan text-base">Flujo Cortex (Beta)</h4>
+                    <p className="text-base text-slate-300 leading-relaxed">
                         Un algoritmo de estudio persistente. Convierte sesiones de estudio largas y complejas en pasos manejables que puedes pausar y retomar días después sin perder el hilo.
                     </p>
                 </div>
                 <div className="border-l-2 border-neuro-green pl-4">
-                    <h4 className="font-bold text-neuro-green">Ciencia (Info)</h4>
-                    <p className="text-sm text-slate-300">
+                    <h4 className="font-bold text-neuro-green text-base">Ciencia (Info)</h4>
+                    <p className="text-base text-slate-300 leading-relaxed">
                         Todo en NeuroPlan está respaldado por estudios. En este módulo encontrarás las fuentes y explicaciones técnicas de cada protocolo.
                     </p>
                 </div>
