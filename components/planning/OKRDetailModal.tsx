@@ -271,16 +271,16 @@ export const OKRDetailModal: React.FC<OKRDetailModalProps> = ({ goal, onClose, o
             </div>
 
             {/* Footer / Actions Bar */}
-            <div className="p-4 border-t border-slate-800 bg-slate-900/90 flex gap-3 z-50">
+            <div className="p-4 border-t border-slate-800 bg-slate-900/90 flex justify-end gap-3 z-50">
                 <button
                     onClick={onComplete}
-                    className="flex-1 px-4 py-3 bg-slate-800 text-neuro-green border border-slate-700 hover:bg-neuro-green/10 rounded-lg font-bold text-sm transition-all"
+                    className="px-6 py-2 bg-slate-800 text-neuro-green border border-slate-700 hover:bg-neuro-green/10 rounded-lg font-bold text-sm transition-all"
                 >
                     COMPLETAR
                 </button>
                 <button
                     onClick={onClose}
-                    className="flex-1 px-4 py-3 bg-neuro-purple text-white hover:brightness-110 rounded-lg font-bold text-sm shadow-[0_0_15px_rgba(112,0,255,0.3)] transition-all"
+                    className="px-6 py-2 bg-neuro-purple text-white hover:brightness-110 rounded-lg font-bold text-sm shadow-[0_0_15px_rgba(112,0,255,0.3)] transition-all"
                 >
                     GUARDAR
                 </button>
