@@ -107,14 +107,26 @@ const DEEP_STUDY_FLOW: StudyPhase[] = [
     }
 ];
 
+interface SessionLog {
+    id: string;
+    name: string;
+    date: string;
+    type: string;
+    duration: string;
+}
+
 export const CortexModule: React.FC = () => {
     const [tab, setTab] = useState<'study' | 'gaming'>('study');
 
     // Study State
     const [studyProgress, setStudyProgress] = useState<string[]>([]);
-    const [activeTimer, setActiveTimer] = useState<{type: FlowSessionType, duration?: number} | null>(null);
+    const [activeTimer, setActiveTimer] = useState<{type: FlowSessionType, duration?: number, stepId?: string} | null>(null);
+    const [sessionLogs, setSessionLogs] = useState<SessionLog[]>([]);
+    const [showSaveModal, setShowSaveModal] = useState(false);
+    const [lastCompletedSession, setLastCompletedSession] = useState<{type: string, duration: string} | null>(null);
+    const [sessionName, setSessionName] = useState("");
 
-    // Default configs for breathing sessions (Copied from FlowModule to ensure ActiveSession works)
+    // Default configs for breathing sessions
     const DEFAULT_CONFIGS: Record<string, any> = {
         active: { inhale: 1.5, exhale: 1.0, hold1: 0, hold2: 0, cycles: 30 },
         tummo: { inhale: 1.5, exhale: 1.0, hold1: 0, hold2: 15, cycles: 30 },
@@ -130,11 +142,19 @@ export const CortexModule: React.FC = () => {
         if (saved) {
             setStudyProgress(JSON.parse(saved));
         }
+        const savedLogs = localStorage.getItem('cortex_session_logs');
+        if (savedLogs) {
+            setSessionLogs(JSON.parse(savedLogs));
+        }
     }, []);
 
     useEffect(() => {
         localStorage.setItem('cortex_study_flow', JSON.stringify(studyProgress));
     }, [studyProgress]);
+
+    useEffect(() => {
+        localStorage.setItem('cortex_session_logs', JSON.stringify(sessionLogs));
+    }, [sessionLogs]);
 
     const toggleStep = (id: string) => {
         setStudyProgress(prev =>
@@ -144,9 +164,6 @@ export const CortexModule: React.FC = () => {
 
     const isPhaseUnlocked = (phaseId: number) => {
         if (phaseId === 0) return true;
-        // Check if previous phase steps are all done? Or just simplify logic
-        // For strict gating, we'd check all steps of phaseId - 1.
-        // Let's implement strict gating.
         const prevPhase = DEEP_STUDY_FLOW.find(p => p.id === phaseId - 1);
         if (!prevPhase) return true;
         return prevPhase.steps.every(s => studyProgress.includes(s.id));
@@ -157,8 +174,51 @@ export const CortexModule: React.FC = () => {
         return Math.round((studyProgress.length / totalSteps) * 100);
     };
 
+    const handleSessionComplete = () => {
+        if (activeTimer) {
+            // Auto-check step
+            if (activeTimer.stepId && !studyProgress.includes(activeTimer.stepId)) {
+                toggleStep(activeTimer.stepId);
+            }
+
+            // Prepare for logging
+            const config = {
+                ...(DEFAULT_CONFIGS[activeTimer.type] || {}),
+                ...(activeTimer.duration ? { duration: activeTimer.duration } : {})
+            };
+
+            let durationStr = "";
+            if (activeTimer.type === 'active' || activeTimer.type === 'tummo' || activeTimer.type === 'calm') {
+                durationStr = `${config.cycles} ciclos`;
+            } else {
+                durationStr = `${config.duration} min`; // Simplified, usually config.duration is in min or sec depending on type
+                if (['gaze', 'panoramic'].includes(activeTimer.type)) durationStr = `${config.duration} seg`; // Usually seconds for these
+            }
+
+            setLastCompletedSession({
+                type: activeTimer.type,
+                duration: durationStr
+            });
+            setSessionName("");
+            setShowSaveModal(true);
+            setActiveTimer(null);
+        }
+    };
+
+    const saveSessionLog = () => {
+        if (!lastCompletedSession) return;
+        const newLog: SessionLog = {
+            id: Date.now().toString(),
+            name: sessionName || "Sesión sin nombre",
+            date: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+            type: lastCompletedSession.type,
+            duration: lastCompletedSession.duration
+        };
+        setSessionLogs(prev => [newLog, ...prev]);
+        setShowSaveModal(false);
+    };
+
     if (activeTimer) {
-        // Merge default config with specific duration if present
         const config = {
             ...(DEFAULT_CONFIGS[activeTimer.type] || {}),
             ...(activeTimer.duration ? { duration: activeTimer.duration } : {})
@@ -169,18 +229,47 @@ export const CortexModule: React.FC = () => {
                 type={activeTimer.type}
                 config={config}
                 onExit={() => setActiveTimer(null)}
-                onComplete={() => {
-                    // Find which step this was associated with to mark it complete automatically?
-                    // For simplicity, we just close it and let user check it (or we could auto-check).
-                    // Let's just close for now.
-                    setActiveTimer(null);
-                }}
+                onComplete={handleSessionComplete}
             />
         );
     }
 
     return (
-        <div className="pb-24 animate-fadeIn">
+        <div className="pb-24 animate-fadeIn relative">
+            {/* Save Session Modal */}
+            {showSaveModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                    <div className="bg-slate-900 border border-slate-700 p-6 rounded-xl w-full max-w-sm shadow-2xl animate-scaleIn">
+                        <h3 className="text-xl font-bold text-white mb-2">Sesión Completada</h3>
+                        <p className="text-sm text-slate-400 mb-4">¿Cómo quieres llamar a esta sesión?</p>
+
+                        <input
+                            type="text"
+                            value={sessionName}
+                            onChange={(e) => setSessionName(e.target.value)}
+                            placeholder="Ej: Estudio Matemáticas..."
+                            className="w-full bg-slate-800 border border-slate-700 text-white rounded p-3 mb-4 focus:outline-none focus:border-neuro-purple"
+                            autoFocus
+                        />
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowSaveModal(false)}
+                                className="flex-1 py-2 rounded text-slate-400 font-bold text-xs hover:bg-slate-800"
+                            >
+                                DESCARTAR
+                            </button>
+                            <button
+                                onClick={saveSessionLog}
+                                className="flex-1 py-2 rounded bg-neuro-purple text-white font-bold text-xs hover:brightness-110"
+                            >
+                                GUARDAR
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <h2 className="text-3xl font-black text-white mb-2">Cortex <span className="text-neuro-cyan text-sm align-top">BETA</span></h2>
             <div className="flex border-b border-slate-800 mb-6">
                 <button
@@ -259,7 +348,7 @@ export const CortexModule: React.FC = () => {
 
                                                 {step.type === 'timer' && !checked && (
                                                     <button
-                                                        onClick={() => setActiveTimer({ type: step.timerType!, duration: step.duration })}
+                                                        onClick={() => setActiveTimer({ type: step.timerType!, duration: step.duration, stepId: step.id })}
                                                         className="px-3 py-1 bg-neuro-purple/20 text-neuro-purple border border-neuro-purple/50 rounded text-xs font-bold hover:bg-neuro-purple hover:text-white transition-colors"
                                                     >
                                                         INICIAR
@@ -272,6 +361,32 @@ export const CortexModule: React.FC = () => {
                             </div>
                         );
                     })}
+
+                    {/* Session History Log */}
+                    <div className="mt-12 pt-8 border-t border-slate-800">
+                        <h3 className="text-lg font-bold text-white mb-4">📜 Historial de Sesiones</h3>
+                        {sessionLogs.length === 0 ? (
+                            <p className="text-sm text-slate-500 italic">No hay sesiones registradas aún.</p>
+                        ) : (
+                            <div className="space-y-2">
+                                {sessionLogs.map(log => (
+                                    <div key={log.id} className="bg-slate-900/40 p-3 rounded-lg flex justify-between items-center border border-slate-800 hover:border-slate-700">
+                                        <div>
+                                            <h4 className="font-bold text-slate-300 text-sm">{log.name}</h4>
+                                            <div className="flex gap-2 text-[10px] text-slate-500 font-mono mt-1">
+                                                <span>{log.date}</span>
+                                                <span>•</span>
+                                                <span className="uppercase">{log.type}</span>
+                                            </div>
+                                        </div>
+                                        <div className="text-xs font-bold text-neuro-purple bg-neuro-purple/10 px-2 py-1 rounded">
+                                            {log.duration}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
 
                     <div className="h-12"></div>
                 </div>
@@ -309,8 +424,7 @@ export const CortexModule: React.FC = () => {
                                 <div className="absolute left-[15px] top-4 bottom-4 w-0.5 bg-slate-800 -z-10"></div>
 
                                 {routine.steps.map((stepId, stepIdx) => {
-                                    // Map step IDs to nice names/times since we lost the TOOLS array reference in this file
-                                    // Or we can import TOOLS or just hardcode for now as this is specific
+                                    // Map step IDs to nice names/times
                                     const getToolInfo = (id: string) => {
                                         switch(id) {
                                             case 'calm': return { title: 'Recuperación', time: '5 min' };
