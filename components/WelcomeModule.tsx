@@ -81,27 +81,96 @@ const SECTIONS = [
     },
     {
         title: "Flow Tools",
-        subtitle: "Ingeniería del Estado Mental",
+        subtitle: "Protocolos Científicos",
         content: (
-            <div className="space-y-4">
-                <p className="text-slate-300">
-                    Tu cerebro es hardware biológico. El módulo <span className="text-neuro-purple font-bold">FLOW</span> contiene protocolos científicos para alterarlo a voluntad.
+            <div className="space-y-3 h-[400px] overflow-y-auto pr-2 native-scroll">
+                <p className="text-slate-300 text-sm mb-2 sticky top-0 bg-[#0a0a0b] pb-2 z-10 border-b border-slate-800">
+                    Herramientas de modulación de estado verificadas por laboratorios de neurociencia.
                 </p>
-                <div className="grid grid-cols-1 gap-2 mt-4">
-                    <div className="flex items-center gap-3 p-2 bg-slate-900/50 rounded-lg">
-                        <span className="w-2 h-2 rounded-full bg-neuro-red"></span>
-                        <span className="text-sm font-bold text-white">Activación:</span>
-                        <span className="text-xs text-slate-400">Sube la energía (adrenalina) antes de trabajar.</span>
+
+                <div className="space-y-3">
+                    {/* CATEGORÍA: ENERGÍA / DESPERTAR */}
+                    <div className="bg-slate-900/50 p-3 rounded-lg border-l-2 border-neuro-red">
+                        <div className="flex justify-between items-center mb-1">
+                            <h4 className="font-bold text-white text-sm">Activación / Tummo</h4>
+                            <span className="text-[10px] bg-neuro-red/20 text-neuro-red px-2 py-0.5 rounded font-bold uppercase">Quitar Sueño</span>
+                        </div>
+                        <p className="text-xs text-slate-400 mb-2">
+                            Hiperventilación cíclica controlada.
+                        </p>
+                        <p className="text-[10px] text-slate-500 italic">
+                            🧬 <strong className="text-slate-400">Ciencia:</strong> Aumenta drásticamente la epinefrina (adrenalina) y reduce el CO2 en sangre, eliminando la latencia del sueño y generando un estado de alerta inemdiata.
+                        </p>
                     </div>
-                    <div className="flex items-center gap-3 p-2 bg-slate-900/50 rounded-lg">
-                        <span className="w-2 h-2 rounded-full bg-neuro-purple"></span>
-                        <span className="text-sm font-bold text-white">Enfoque:</span>
-                        <span className="text-xs text-slate-400">Trabajo profundo y sostenido (Ciclos ultradianos).</span>
+
+                    {/* CATEGORÍA: ENFOQUE */}
+                    <div className="bg-slate-900/50 p-3 rounded-lg border-l-2 border-neuro-purple">
+                        <div className="flex justify-between items-center mb-1">
+                            <h4 className="font-bold text-white text-sm">Enfoque Visual (Gaze)</h4>
+                            <span className="text-[10px] bg-neuro-purple/20 text-neuro-purple px-2 py-0.5 rounded font-bold uppercase">Concentración</span>
+                        </div>
+                        <p className="text-xs text-slate-400 mb-2">
+                            Fijación de la mirada en un punto único.
+                        </p>
+                        <p className="text-[10px] text-slate-500 italic">
+                            🧬 <strong className="text-slate-400">Ciencia:</strong> Al suprimir las microsacadas oculares, se activa el Locus Coeruleus en el tronco encefálico, liberando norepinefrina prefrontal y "anclando" la atención.
+                        </p>
                     </div>
-                    <div className="flex items-center gap-3 p-2 bg-slate-900/50 rounded-lg">
-                        <span className="w-2 h-2 rounded-full bg-neuro-blue"></span>
-                        <span className="text-sm font-bold text-white">Calma/NSDR:</span>
-                        <span className="text-xs text-slate-400">Recuperación y descanso profundo sin dormir.</span>
+
+                    {/* CATEGORÍA: TRABAJO PROFUNDO */}
+                    <div className="bg-slate-900/50 p-3 rounded-lg border-l-2 border-neuro-purple">
+                        <div className="flex justify-between items-center mb-1">
+                            <h4 className="font-bold text-white text-sm">Trabajo Profundo (90min)</h4>
+                            <span className="text-[10px] bg-neuro-purple/20 text-neuro-purple px-2 py-0.5 rounded font-bold uppercase">Productividad</span>
+                        </div>
+                        <p className="text-xs text-slate-400 mb-2">
+                            Bloques de trabajo alineados con biología.
+                        </p>
+                        <p className="text-[10px] text-slate-500 italic">
+                            🧬 <strong className="text-slate-400">Ciencia:</strong> Respeta los ciclos Ultradianos del cerebro, maximizando la ventana de alta performance cognitiva antes de que los neuroquímicos se agoten.
+                        </p>
+                    </div>
+
+                    {/* CATEGORÍA: RELAJACIÓN RÁPIDA */}
+                    <div className="bg-slate-900/50 p-3 rounded-lg border-l-2 border-neuro-blue">
+                        <div className="flex justify-between items-center mb-1">
+                            <h4 className="font-bold text-white text-sm">Visión Panorámica</h4>
+                            <span className="text-[10px] bg-neuro-blue/20 text-neuro-blue px-2 py-0.5 rounded font-bold uppercase">Anti-Estrés</span>
+                        </div>
+                        <p className="text-xs text-slate-400 mb-2">
+                            Dilatación de la mirada hacia el horizonte.
+                        </p>
+                        <p className="text-[10px] text-slate-500 italic">
+                            🧬 <strong className="text-slate-400">Ciencia:</strong> Desactiva mecánicamente la respuesta de "lucha o huida" al relajar los músculos ciliares del ojo, enviando una señal de seguridad al sistema parasimpático.
+                        </p>
+                    </div>
+
+                    {/* CATEGORÍA: CALMA */}
+                    <div className="bg-slate-900/50 p-3 rounded-lg border-l-2 border-neuro-blue">
+                        <div className="flex justify-between items-center mb-1">
+                            <h4 className="font-bold text-white text-sm">Suspiro Fisiológico</h4>
+                            <span className="text-[10px] bg-neuro-blue/20 text-neuro-blue px-2 py-0.5 rounded font-bold uppercase">Calma Instantánea</span>
+                        </div>
+                        <p className="text-xs text-slate-400 mb-2">
+                            Doble inhalación por nariz, exhalación larga por boca.
+                        </p>
+                        <p className="text-[10px] text-slate-500 italic">
+                            🧬 <strong className="text-slate-400">Ciencia:</strong> Re-expande los alvéolos pulmonares colapsados, eliminando el exceso de CO2 en sangre y reduciendo la taquicardia en tiempo real.
+                        </p>
+                    </div>
+
+                    {/* CATEGORÍA: DESCANSO / SUEÑO */}
+                    <div className="bg-slate-900/50 p-3 rounded-lg border-l-2 border-neuro-green">
+                        <div className="flex justify-between items-center mb-1">
+                            <h4 className="font-bold text-white text-sm">NSDR / Yoga Nidra</h4>
+                            <span className="text-[10px] bg-neuro-green/20 text-neuro-green px-2 py-0.5 rounded font-bold uppercase">Dar Sueño / Restaurar</span>
+                        </div>
+                        <p className="text-xs text-slate-400 mb-2">
+                            Descanso Profundo Sin Dormir.
+                        </p>
+                        <p className="text-[10px] text-slate-500 italic">
+                            🧬 <strong className="text-slate-400">Ciencia:</strong> Reduce la actividad de ondas cerebrales (Alfa/Theta) y restaura los niveles de dopamina en los ganglios basales, acelerando la neuroplasticidad y recuperación.
+                        </p>
                     </div>
                 </div>
             </div>

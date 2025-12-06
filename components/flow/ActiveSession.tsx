@@ -24,6 +24,7 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
     const [phase, setPhase] = useState<string>('Listo');
     const [cycleCount, setCycleCount] = useState(0);
     const [scale, setScale] = useState(1);
+    const [stepDuration, setStepDuration] = useState(1);
     
     // UI Visuals
     const [activeSubtitle, setActiveSubtitle] = useState("Toca INICIAR para comenzar");
@@ -177,6 +178,7 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
             if (!isMountedRef.current || status !== 'running') return;
             
             setPhase(text);
+            setStepDuration(dur);
             setScale(s);
             audio.playTone(tone, dur);
 
@@ -294,8 +296,8 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
             {/* Main Visualizer */}
             <div className="relative z-10 flex flex-col items-center w-full max-w-lg mb-10">
                 {!isBreathingSession ? (
-                    <div className="text-center w-full">
-                        <div className={`text-8xl font-black text-white font-mono tracking-tighter mb-8 tabular-nums`}>
+                    <div className="text-center w-full relative">
+                        <div className={`${['gaze', 'panoramic'].includes(type) ? 'fixed bottom-8 right-8 text-2xl opacity-30 hover:opacity-100' : 'text-8xl mb-8'} font-black text-white font-mono tracking-tighter tabular-nums transition-all duration-500`}>
                             {formatTime(timeLeft)}
                         </div>
                         
@@ -306,7 +308,12 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
                                     <button onClick={() => setAudioMode('40hz')} className={`px-3 py-1 text-xs font-mono rounded ${audioMode === '40hz' ? 'bg-neuro-purple text-white' : 'text-slate-400'}`}>40HZ</button>
                                     <button onClick={() => setAudioMode('silent')} className={`px-3 py-1 text-xs font-mono rounded ${audioMode === 'silent' ? 'bg-neuro-purple text-white' : 'text-slate-400'}`}>SILENCIO</button>
                                 </div>
-                                <span className="text-[10px] text-slate-500 uppercase tracking-widest">
+                                <p className="text-[10px] text-slate-400 text-center max-w-[250px] leading-tight min-h-[2.5em]">
+                                    {audioMode === 'brown' && "Ruido de baja frecuencia. Enmascara el entorno y calma la amígdala."}
+                                    {audioMode === '40hz' && "Ondas Gamma. Sincroniza la actividad neuronal para máxima concentración."}
+                                    {audioMode === 'silent' && "Ausencia de estímulos. Ideal si tu entorno ya es silencioso."}
+                                </p>
+                                <span className="text-[10px] text-slate-500 uppercase tracking-widest mt-2">
                                     {status === 'idle' ? 'BLOQUE COMPLETADO' : 'TRABAJO PROFUNDO ACTIVO'}
                                 </span>
                             </div>
@@ -349,9 +356,11 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
                     // Breathing Visualizer
                     <>
                         <div 
-                            className={`w-64 h-64 rounded-full border-4 ${borderClass} flex flex-col items-center justify-center transition-all duration-[1000ms] shadow-[0_0_50px_rgba(0,0,0,0.5)]`}
+                            className={`w-64 h-64 rounded-full border-4 ${borderClass} flex flex-col items-center justify-center transition-all shadow-[0_0_50px_rgba(0,0,0,0.5)]`}
                             style={{ 
                                 transform: `scale(${scale})`,
+                                transitionDuration: `${stepDuration}s`,
+                                transitionTimingFunction: 'ease-in-out',
                                 borderColor: scale > 1.2 ? 'white' : undefined,
                                 boxShadow: scale > 1.2 ? `0 0 80px ${hexColor}` : 'none'
                             }}
@@ -359,7 +368,7 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
                             <span className="text-xl font-bold text-slate-300 uppercase tracking-widest mb-1 text-center px-2 leading-tight">{phase}</span>
                             {/* Removed the large number countdown to reduce distraction as requested */}
                         </div>
-                        <div className="mt-12 font-mono text-slate-500">
+                        <div className="fixed bottom-48 font-mono text-slate-500 pointer-events-none z-0">
                             CICLO <span className="text-white text-xl">{cycleCount}</span> <span className="text-xs">/ {config.cycles}</span>
                         </div>
                     </>

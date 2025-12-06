@@ -61,7 +61,7 @@ const DEEP_STUDY_FLOW: StudyPhase[] = [
         title: "Fase 1: Neuro-Priming",
         description: "Gatillo biológico de entrada.",
         steps: [
-            { id: 's1_1', label: "Enfoque Visual (45s)", type: 'timer', timerType: 'gaze', duration: 1 },
+            { id: 's1_1', label: "Enfoque Visual (45s)", type: 'timer', timerType: 'gaze' },
             { id: 's1_2', label: "Activación (3 min)", type: 'timer', timerType: 'active' }
         ]
     },
@@ -114,6 +114,17 @@ export const CortexModule: React.FC = () => {
     const [studyProgress, setStudyProgress] = useState<string[]>([]);
     const [activeTimer, setActiveTimer] = useState<{type: FlowSessionType, duration?: number} | null>(null);
 
+    // Default configs for breathing sessions (Copied from FlowModule to ensure ActiveSession works)
+    const DEFAULT_CONFIGS: Record<string, any> = {
+        active: { inhale: 1.5, exhale: 1.0, hold1: 0, hold2: 0, cycles: 30 },
+        tummo: { inhale: 1.5, exhale: 1.0, hold1: 0, hold2: 15, cycles: 30 },
+        calm: { inhale: 4, hold1: 7, exhale: 8, hold2: 0, cycles: 15, double: true },
+        panoramic: { duration: 120 },
+        gaze: { duration: 45 },
+        focus: { duration: 90 },
+        nsdr: { duration: 20 }
+    };
+
     useEffect(() => {
         const saved = localStorage.getItem('cortex_study_flow');
         if (saved) {
@@ -147,10 +158,16 @@ export const CortexModule: React.FC = () => {
     };
 
     if (activeTimer) {
+        // Merge default config with specific duration if present
+        const config = {
+            ...(DEFAULT_CONFIGS[activeTimer.type] || {}),
+            ...(activeTimer.duration ? { duration: activeTimer.duration } : {})
+        };
+
         return (
             <ActiveSession
                 type={activeTimer.type}
-                config={{ duration: activeTimer.duration }} // Simplify config for now
+                config={config}
                 onExit={() => setActiveTimer(null)}
                 onComplete={() => {
                     // Find which step this was associated with to mark it complete automatically?
@@ -268,7 +285,22 @@ export const CortexModule: React.FC = () => {
                         </p>
                     </div>
 
-                    {GAMER_ROUTINES.map((routine, idx) => (
+                    {/* Moved Checklist to Top */}
+                    <div className="mb-8 p-4 border border-dashed border-slate-700 rounded-xl bg-slate-900/30">
+                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">CHECKLIST DE INMERSIÓN</h4>
+                        <ul className="space-y-2 text-sm text-slate-400">
+                            <li className="flex items-center gap-2"><span className="text-neuro-green">✓</span> HUD / Minimapa Desactivado</li>
+                            <li className="flex items-center gap-2"><span className="text-neuro-green">✓</span> Audio en Rango Dinámico Alto</li>
+                            <li className="flex items-center gap-2"><span className="text-neuro-green">✓</span> FOV a 90-100 (Visión Periférica)</li>
+                            <li className="flex items-center gap-2"><span className="text-neuro-green">✓</span> Sin Viaje Rápido (Permadeath Mental)</li>
+                        </ul>
+                    </div>
+
+                    {[...GAMER_ROUTINES, {
+                        title: "Calentamiento Motor (Reflejos)",
+                        desc: "Sincronización óculo-manual. Prepara los reflejos antes de partidas competitivas.",
+                        steps: ['gaze', 'active']
+                    }].map((routine, idx) => (
                         <div key={idx} className="glass p-6 rounded-xl border-l-4 border-neuro-cyan">
                             <h3 className="text-xl font-bold text-white mb-1">{routine.title}</h3>
                             <p className="text-sm text-slate-400 mb-4">{routine.desc}</p>
@@ -311,16 +343,6 @@ export const CortexModule: React.FC = () => {
                             </div>
                         </div>
                     ))}
-
-                    <div className="mt-8 p-4 border border-dashed border-slate-700 rounded-xl">
-                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">CHECKLIST DE INMERSIÓN</h4>
-                        <ul className="space-y-2 text-sm text-slate-400">
-                            <li className="flex items-center gap-2"><span className="text-neuro-green">✓</span> HUD / Minimapa Desactivado</li>
-                            <li className="flex items-center gap-2"><span className="text-neuro-green">✓</span> Audio en Rango Dinámico Alto</li>
-                            <li className="flex items-center gap-2"><span className="text-neuro-green">✓</span> FOV a 90-100 (Visión Periférica)</li>
-                            <li className="flex items-center gap-2"><span className="text-neuro-green">✓</span> Sin Viaje Rápido (Permadeath Mental)</li>
-                        </ul>
-                    </div>
                 </div>
             )}
         </div>

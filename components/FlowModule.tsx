@@ -93,9 +93,24 @@ const ROUTINES = [
 ];
 
 const PRESETS = [
-    { name: "Box Breathing", desc: "Estabilización táctica (Navy SEALs).", pattern: { inhale: 4, hold1: 4, exhale: 4, hold2: 4, cycles: 12 } },
-    { name: "4-7-8 Relax", desc: "Inducción al sueño parasimpático.", pattern: { inhale: 4, hold1: 7, exhale: 8, hold2: 0, cycles: 10 } },
-    { name: "Coherencia", desc: "Sincronía cardio-cerebral.", pattern: { inhale: 5.5, hold1: 0, exhale: 5.5, hold2: 0, cycles: 30 } }
+    {
+        name: "Box Breathing",
+        desc: "Estabilización táctica (Navy SEALs).",
+        info: "Qué: Patrón cuadrado (4-4-4-4). Cómo: Inhala, retén, exhala, sostén vacío. Por qué: Reestablece el ritmo respiratorio normal y reduce el pánico instantáneamente.",
+        pattern: { inhale: 4, hold1: 4, exhale: 4, hold2: 4, cycles: 12 }
+    },
+    {
+        name: "4-7-8 Relax",
+        desc: "Inducción al sueño parasimpático.",
+        info: "Qué: Exhalación prolongada. Cómo: Inhala 4s, retén 7s, exhala 8s. Por qué: La exhalación larga activa el nervio vago, disminuyendo la frecuencia cardíaca.",
+        pattern: { inhale: 4, hold1: 7, exhale: 8, hold2: 0, cycles: 10 }
+    },
+    {
+        name: "Coherencia",
+        desc: "Sincronía cardio-cerebral.",
+        info: "Qué: 5.5s inhalar, 5.5s exhalar. Cómo: Sin pausas, flujo continuo. Por qué: Maximiza la Variabilidad de la Frecuencia Cardíaca (HRV) y el equilibrio emocional.",
+        pattern: { inhale: 5.5, hold1: 0, exhale: 5.5, hold2: 0, cycles: 30 }
+    }
 ];
 
 // --- MAIN MODULE (EXPORTED LAST) ---
@@ -198,7 +213,7 @@ export const FlowModule: React.FC<FlowModuleProps> = ({ onSessionComplete }) => 
                                         ⚙️
                                     </button>
                                 </div>
-                                <span className={`text-[10px] font-mono font-bold text-neuro-${tool.color} bg-slate-900/50 px-2 py-1 rounded mb-3 inline-block`}>
+                                <span className={`text-xs font-mono font-bold text-neuro-${tool.color} bg-slate-900/50 px-2 py-1 rounded mb-3 inline-block`}>
                                     {tool.time}
                                 </span>
                                 <p className="text-sm text-slate-400 mb-6 min-h-[40px] leading-relaxed">{tool.desc}</p>
@@ -221,13 +236,21 @@ export const FlowModule: React.FC<FlowModuleProps> = ({ onSessionComplete }) => 
                         </h3>
                          <div className="grid grid-cols-1 gap-2 mb-4">
                             {PRESETS.map((preset, idx) => (
-                                <button 
-                                    key={idx}
-                                    onClick={() => startSession('custom', preset.pattern)}
-                                    className="text-left p-2 rounded border border-slate-800 bg-slate-900/30 hover:bg-neuro-purple/10 hover:border-neuro-purple transition-colors"
-                                >
-                                    <div className="font-bold text-slate-300 text-xs">{preset.name}</div>
-                                </button>
+                                <div key={idx} className="bg-slate-900/30 border border-slate-800 rounded mb-2 overflow-hidden">
+                                    <button
+                                        onClick={() => startSession('custom', preset.pattern)}
+                                        className="w-full text-left p-2 hover:bg-white/5 transition-colors flex justify-between items-center border-b border-slate-800/50"
+                                    >
+                                        <div className="font-bold text-slate-300 text-xs">{preset.name}</div>
+                                        <span className="text-[9px] bg-slate-800 px-1.5 py-0.5 rounded text-neuro-cyan tracking-wider">INICIAR</span>
+                                    </button>
+                                    <div className="px-2 py-2 bg-black/20">
+                                        <p className="text-xs text-slate-400 mb-1.5">{preset.desc}</p>
+                                        <p className="text-[11px] text-slate-500 italic border-l-2 border-neuro-purple/30 pl-2 leading-relaxed">
+                                            {preset.info}
+                                        </p>
+                                    </div>
+                                </div>
                             ))}
                         </div>
                         <button onClick={(e) => openSettings(e, 'custom')} className="w-full py-2 bg-slate-800 text-slate-300 rounded-lg font-bold text-xs hover:bg-slate-700">
