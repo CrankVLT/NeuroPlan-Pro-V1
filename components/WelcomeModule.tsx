@@ -83,7 +83,7 @@ const SECTIONS = [
         title: "Flow Tools",
         subtitle: "Protocolos Científicos",
         content: (
-            <div className="space-y-3 h-[400px] overflow-y-auto pr-2 native-scroll">
+            <div className="space-y-3 h-[400px] overflow-y-auto pr-2 native-scroll hide-scrollbar">
                 <p className="text-slate-300 text-sm mb-2 sticky top-0 bg-[#0a0a0b] pb-2 z-10 border-b border-slate-800">
                     Herramientas de modulación de estado verificadas por laboratorios de neurociencia.
                 </p>
