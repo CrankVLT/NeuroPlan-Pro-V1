@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Goal, KeyResult, Task } from '../../types';
 
 interface OKRDetailModalProps {
@@ -10,7 +11,7 @@ interface OKRDetailModalProps {
 }
 
 export const OKRDetailModal: React.FC<OKRDetailModalProps> = ({ goal, onClose, onUpdate, onComplete, onDelete }) => {
-    
+
     // Key Results Management
     const [newKRMode, setNewKRMode] = useState(false);
     const [krTitle, setKrTitle] = useState('');
@@ -43,7 +44,7 @@ export const OKRDetailModal: React.FC<OKRDetailModalProps> = ({ goal, onClose, o
     };
 
     const deleteKR = (krId: number) => {
-        if(!confirm("¿Borrar Resultado Clave?")) return;
+        if (!confirm("¿Borrar Resultado Clave?")) return;
         const updatedKRs = goal.keyResults.filter(kr => kr.id !== krId);
         onUpdate({ ...goal, keyResults: updatedKRs });
     };
@@ -78,8 +79,8 @@ export const OKRDetailModal: React.FC<OKRDetailModalProps> = ({ goal, onClose, o
         return Number(val);
     };
 
-    return (
-        <div className="fixed inset-0 z-[60] flex flex-col bg-neuro-bg/95 backdrop-blur-xl animate-[slideIn_0.2s_ease-out]">
+    return createPortal(
+        <div className="fixed inset-0 z-[9999] flex flex-col bg-neuro-bg/95 backdrop-blur-xl animate-[slideIn_0.2s_ease-out]">
             {/* Header */}
             <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/50 pt-14 md:pt-4">
                 <button onClick={onClose} className="text-slate-400 hover:text-white flex items-center gap-2 font-bold text-sm">
@@ -98,12 +99,12 @@ export const OKRDetailModal: React.FC<OKRDetailModalProps> = ({ goal, onClose, o
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 md:p-8 max-w-3xl mx-auto w-full pb-32">
-                
+            <div className="flex-1 overflow-y-auto p-4 md:p-8 max-w-3xl mx-auto w-full pb-32 hide-scrollbar">
+
                 {/* Title Section */}
                 <div className="mb-8">
                     <label className="text-[10px] text-neuro-purple font-mono font-bold tracking-widest uppercase mb-2 block">OBJETIVO PRINCIPAL</label>
-                    <input 
+                    <input
                         className="w-full bg-transparent text-xl md:text-3xl font-bold text-white outline-none border-b border-transparent focus:border-slate-700 pb-2 placeholder-slate-600"
                         value={goal.title}
                         onChange={(e) => onUpdate({ ...goal, title: e.target.value })}
@@ -114,7 +115,7 @@ export const OKRDetailModal: React.FC<OKRDetailModalProps> = ({ goal, onClose, o
                 {/* Key Results Section */}
                 <div>
                     <div className="flex justify-between items-end mb-4 border-b border-slate-800 pb-2">
-                         <h3 className="text-white font-bold flex items-center gap-2">
+                        <h3 className="text-white font-bold flex items-center gap-2">
                             <span className="text-neuro-cyan">◈</span> RESULTADOS CLAVE (KRs)
                         </h3>
                     </div>
@@ -128,7 +129,7 @@ export const OKRDetailModal: React.FC<OKRDetailModalProps> = ({ goal, onClose, o
                                     {/* KR Header */}
                                     <div className="p-4 bg-slate-900/40">
                                         <div className="flex justify-between items-start gap-2 mb-3">
-                                            <input 
+                                            <input
                                                 className="bg-transparent font-bold text-slate-200 outline-none flex-1 text-sm md:text-base"
                                                 value={kr.title}
                                                 onChange={(e) => updateKR(kr.id, { title: e.target.value })}
@@ -138,30 +139,44 @@ export const OKRDetailModal: React.FC<OKRDetailModalProps> = ({ goal, onClose, o
 
                                         {/* Progress Controls */}
                                         <div className="flex items-center gap-3 mb-2 flex-wrap md:flex-nowrap">
-                                            <input 
-                                                type="range" 
-                                                min="0" max={kr.target} 
-                                                value={kr.current} 
-                                                onChange={(e) => updateKR(kr.id, { current: Number(e.target.value) })}
-                                                className="w-full md:flex-1 h-2 bg-slate-700 rounded-full accent-neuro-cyan order-2 md:order-1"
-                                            />
+                                            <div className="w-full md:flex-1 flex items-center gap-2 order-2 md:order-1">
+                                                <button
+                                                    onClick={() => updateKR(kr.id, { current: Math.max(0, kr.current - 1) })}
+                                                    className="w-6 h-6 flex items-center justify-center rounded bg-slate-800 text-neuro-cyan hover:bg-neuro-cyan hover:text-black font-bold text-sm transition-colors border border-slate-700 hover:border-neuro-cyan"
+                                                >
+                                                    -
+                                                </button>
+                                                <input
+                                                    type="range"
+                                                    min="0" max={kr.target}
+                                                    value={kr.current}
+                                                    onChange={(e) => updateKR(kr.id, { current: Number(e.target.value) })}
+                                                    className="flex-1 h-2 bg-slate-700 rounded-full accent-neuro-cyan"
+                                                />
+                                                <button
+                                                    onClick={() => updateKR(kr.id, { current: Math.min(kr.target, kr.current + 1) })}
+                                                    className="w-6 h-6 flex items-center justify-center rounded bg-slate-800 text-neuro-cyan hover:bg-neuro-cyan hover:text-black font-bold text-sm transition-colors border border-slate-700 hover:border-neuro-cyan"
+                                                >
+                                                    +
+                                                </button>
+                                            </div>
                                             <div className="flex items-center gap-1 font-mono text-xs bg-slate-800 px-2 py-1 rounded border border-slate-700 order-1 md:order-2 ml-auto">
-                                                <input 
-                                                    type="number" 
+                                                <input
+                                                    type="number"
                                                     className="w-12 bg-transparent text-right outline-none text-neuro-cyan font-bold"
                                                     value={kr.current || ''}
                                                     placeholder="0"
                                                     onChange={(e) => updateKR(kr.id, { current: handleNumberInput(e.target.value) })}
                                                 />
                                                 <span className="text-slate-500">de</span>
-                                                <input 
-                                                    type="number" 
+                                                <input
+                                                    type="number"
                                                     className="w-12 bg-transparent text-right outline-none text-white"
                                                     value={kr.target || ''}
                                                     placeholder="0"
                                                     onChange={(e) => updateKR(kr.id, { target: handleNumberInput(e.target.value) })}
                                                 />
-                                                <input 
+                                                <input
                                                     className="min-w-[20px] max-w-[60px] bg-transparent text-center outline-none text-slate-500 uppercase truncate"
                                                     value={kr.unit}
                                                     onChange={(e) => updateKR(kr.id, { unit: e.target.value })}
@@ -172,7 +187,7 @@ export const OKRDetailModal: React.FC<OKRDetailModalProps> = ({ goal, onClose, o
 
                                     {/* Tasks Toggle */}
                                     <div className="border-t border-slate-800">
-                                        <button 
+                                        <button
                                             onClick={() => setExpandedKR(isExpanded ? null : kr.id)}
                                             className="w-full py-2 px-4 flex justify-between items-center text-xs font-bold text-slate-500 hover:bg-white/5 transition-colors"
                                         >
@@ -186,7 +201,7 @@ export const OKRDetailModal: React.FC<OKRDetailModalProps> = ({ goal, onClose, o
                                                 <div className="space-y-2 mb-3">
                                                     {kr.tasks.map(task => (
                                                         <div key={task.id} className="flex items-center gap-3 group">
-                                                            <button 
+                                                            <button
                                                                 onClick={() => toggleTask(kr.id, task.id)}
                                                                 className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${task.completed ? 'bg-neuro-green border-neuro-green text-black' : 'border-slate-500'}`}
                                                             >
@@ -199,17 +214,17 @@ export const OKRDetailModal: React.FC<OKRDetailModalProps> = ({ goal, onClose, o
                                                         </div>
                                                     ))}
                                                 </div>
-                                                
+
                                                 {/* Add Task Input */}
                                                 <div className="flex gap-2">
-                                                    <input 
+                                                    <input
                                                         className="flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-white outline-none focus:border-neuro-cyan"
                                                         placeholder="Nueva tarea..."
                                                         value={newTaskTitle}
                                                         onChange={(e) => setNewTaskTitle(e.target.value)}
                                                         onKeyDown={(e) => e.key === 'Enter' && addTaskToKR(kr.id)}
                                                     />
-                                                    <button 
+                                                    <button
                                                         onClick={() => addTaskToKR(kr.id)}
                                                         disabled={!newTaskTitle}
                                                         className="bg-slate-700 text-white px-3 py-1 rounded text-xs font-bold hover:bg-neuro-cyan hover:text-black disabled:opacity-50"
@@ -229,7 +244,7 @@ export const OKRDetailModal: React.FC<OKRDetailModalProps> = ({ goal, onClose, o
                             <div className="glass p-4 rounded-xl border border-dashed border-neuro-purple animate-[fadeIn_0.3s]">
                                 <div className="mb-3">
                                     <label className="text-[10px] text-neuro-purple font-bold block mb-1">TÍTULO DEL KR</label>
-                                    <input 
+                                    <input
                                         className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none focus:border-neuro-purple text-sm"
                                         placeholder="Ej: Escribir 5 artículos"
                                         value={krTitle}
@@ -242,7 +257,7 @@ export const OKRDetailModal: React.FC<OKRDetailModalProps> = ({ goal, onClose, o
                                         <label className="text-[10px] text-slate-500 block mb-1">META</label>
                                         <input
                                             type="number"
-                                            className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none text-right text-sm"
+                                            className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none text-right text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                             value={krTarget || ''}
                                             placeholder="0"
                                             onChange={e => setKrTarget(handleNumberInput(e.target.value))}
@@ -259,7 +274,7 @@ export const OKRDetailModal: React.FC<OKRDetailModalProps> = ({ goal, onClose, o
                                 </div>
                             </div>
                         ) : (
-                            <button 
+                            <button
                                 onClick={() => setNewKRMode(true)}
                                 className="w-full py-3 border border-slate-800 rounded-xl text-slate-500 text-xs font-bold hover:border-neuro-cyan hover:text-neuro-cyan transition-all flex items-center justify-center gap-2"
                             >
@@ -285,6 +300,7 @@ export const OKRDetailModal: React.FC<OKRDetailModalProps> = ({ goal, onClose, o
                     GUARDAR
                 </button>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };

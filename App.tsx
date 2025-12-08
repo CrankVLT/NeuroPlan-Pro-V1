@@ -10,7 +10,7 @@ import { WelcomeModule } from './components/WelcomeModule';
 const App: React.FC = () => {
     const [view, setView] = useState<ViewState>('welcome');
     const [booting, setBooting] = useState(true);
-    
+
     // Neural Battery State
     const [battery, setBattery] = useState(100);
 
@@ -18,7 +18,7 @@ const App: React.FC = () => {
         const timer = setTimeout(() => setBooting(false), 2500);
         // Load battery
         const savedBattery = localStorage.getItem('neuro_battery');
-        if(savedBattery) setBattery(Number(savedBattery));
+        if (savedBattery) setBattery(Number(savedBattery));
         return () => clearTimeout(timer);
     }, []);
 
@@ -32,14 +32,14 @@ const App: React.FC = () => {
 
     // Battery Color Logic
     const getBatteryColor = () => {
-        if(battery > 60) return 'text-neuro-green';
-        if(battery > 30) return 'text-yellow-400';
+        if (battery > 60) return 'text-neuro-green';
+        if (battery > 30) return 'text-yellow-400';
         return 'text-neuro-red';
     };
 
     const getBatteryBarColor = () => {
-        if(battery > 60) return 'bg-neuro-green';
-        if(battery > 30) return 'bg-yellow-400';
+        if (battery > 60) return 'bg-neuro-green';
+        if (battery > 30) return 'bg-yellow-400';
         return 'bg-neuro-red';
     };
 
@@ -56,7 +56,13 @@ const App: React.FC = () => {
     return (
         // Estructura Flex Column: Header fijo (si lo hubiera) + Main (flexible con scroll) + Footer (fijo)
         <div className="fixed inset-0 w-full h-full bg-neuro-bg text-slate-200 font-sans selection:bg-neuro-purple selection:text-white flex flex-col md:flex-row overflow-hidden">
-            
+
+            {/* Background Ambient Effect */}
+            <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-neuro-purple/10 rounded-full blur-[120px] mix-blend-screen animate-blob"></div>
+                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-neuro-cyan/10 rounded-full blur-[120px] mix-blend-screen animate-blob" style={{ animationDelay: '2s' }}></div>
+            </div>
+
             {/* Desktop Sidebar */}
             <aside className="hidden md:flex flex-col w-64 h-full border-r border-slate-800 z-50 glass shrink-0">
                 <div className="p-8">
@@ -78,7 +84,7 @@ const App: React.FC = () => {
                         </div>
                     </div>
                 </div>
-                
+
                 <nav className="flex-1 px-4 space-y-2">
                     <NavBtn label="Bienvenido" active={view === 'welcome'} onClick={() => setView('welcome')} icon="👋" />
                     <NavBtn label="Planificación" active={view === 'dashboard'} onClick={() => setView('dashboard')} icon="📊" />
@@ -89,13 +95,13 @@ const App: React.FC = () => {
                 </nav>
 
                 <div className="p-6">
-                   <div className="flex items-center gap-2 text-[10px] text-neuro-green font-mono">
-                       <span className="relative flex h-2 w-2">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                    <div className="flex items-center gap-2 text-[10px] text-neuro-green font-mono">
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                         </span>
-                       SISTEMA ONLINE
-                   </div>
+                        SISTEMA ONLINE
+                    </div>
                 </div>
             </aside>
 
@@ -112,12 +118,7 @@ const App: React.FC = () => {
             </header>
 
             {/* Content Area - Flexible y Scrolleable */}
-            <main className="flex-1 relative z-0 overflow-y-auto native-scroll">
-                {/* Background Ambient Effect */}
-                <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
-                    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-neuro-purple/10 rounded-full blur-[120px] mix-blend-screen animate-blob"></div>
-                    <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-neuro-cyan/10 rounded-full blur-[120px] mix-blend-screen animate-blob" style={{ animationDelay: '2s'}}></div>
-                </div>
+            <main className="flex-1 overflow-y-auto native-scroll relative z-10">
 
                 <div className="max-w-4xl mx-auto p-4 md:p-12">
                     <div className="animate-[fadeIn_0.5s_ease-out]">
@@ -149,7 +150,7 @@ const App: React.FC = () => {
 };
 
 const NavBtn: React.FC<{ label: string; active: boolean; onClick: () => void; icon: string }> = ({ label, active, onClick, icon }) => (
-    <button 
+    <button
         onClick={onClick}
         className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all text-sm font-bold ${active ? 'bg-neuro-purple/20 text-white border border-neuro-purple/50' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
     >
@@ -159,7 +160,7 @@ const NavBtn: React.FC<{ label: string; active: boolean; onClick: () => void; ic
 );
 
 const MobileNavBtn: React.FC<{ label: string; active: boolean; onClick: () => void; icon: string }> = ({ label, active, onClick, icon }) => (
-    <button 
+    <button
         onClick={onClick}
         className={`relative flex flex-col items-center justify-center w-full h-full transition-all ${active ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}
     >
