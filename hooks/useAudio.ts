@@ -159,27 +159,44 @@ export const useAudio = () => {
         return [];
     }, []);
 
-    const speak = useCallback((text: string, voiceURI?: string, rate?: number, pitch?: number) => {
-        if (isMutedRef.current) return;
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance(text);
-
-            // Default settings
-            u.lang = 'es-ES';
-            u.rate = rate || 0.9;
-            u.pitch = pitch || 1;
-            u.volume = volumeRef.current;
-
-            // Voice selection
-            if (voiceURI) {
-                const voices = window.speechSynthesis.getVoices();
-                const selectedVoice = voices.find(v => v.voiceURI === voiceURI);
-                if (selectedVoice) u.voice = selectedVoice;
+    const speak = useCallback((text: string, voiceURI?: string, rate?: number, pitch?: number): Promise<void> => {
+        return new Promise((resolve) => {
+            if (isMutedRef.current) {
+                resolve();
+                return;
             }
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const u = new SpeechSynthesisUtterance(text);
 
-            window.speechSynthesis.speak(u);
-        }
+                // Default settings
+                u.lang = 'es-ES';
+                u.rate = rate || 0.9;
+                u.pitch = pitch || 1;
+                u.volume = volumeRef.current;
+
+                // Voice selection
+                const voices = window.speechSynthesis.getVoices();
+                if (voiceURI) {
+                    const selectedVoice = voices.find(v => v.voiceURI === voiceURI);
+                    if (selectedVoice) u.voice = selectedVoice;
+                } else {
+                    // Auto-select Google Español if available and no specific voice requested
+                    const googleVoice = voices.find(v => v.name.toLowerCase().includes('google') && (v.lang.includes('es') || v.lang.includes('ES')));
+                    if (googleVoice) u.voice = googleVoice;
+                }
+
+                u.onend = () => resolve();
+                u.onerror = (e) => {
+                    console.warn("Speech error", e);
+                    resolve();
+                };
+
+                window.speechSynthesis.speak(u);
+            } else {
+                resolve();
+            }
+        });
     }, []);
 
     const stopBg = () => {

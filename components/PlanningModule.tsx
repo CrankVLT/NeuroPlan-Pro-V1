@@ -14,8 +14,7 @@ const INITIAL_DATA: PlanningData = {
 
 export const PlanningModule: React.FC = () => {
     const [data, setData] = useState<PlanningData>(INITIAL_DATA);
-    const [view, setView] = useState<'week' | 'month' | 'quarter'>('week');
-    const [tab, setTab] = useState<'active' | 'history'>('active');
+    const [view, setView] = useState<'week' | 'month' | 'quarter' | 'history'>('week');
 
     // UI States
     const [isCreating, setIsCreating] = useState(false);
@@ -50,18 +49,24 @@ export const PlanningModule: React.FC = () => {
         }
     }, [data]);
 
-    const currentContext = useMemo(() => data[view], [data, view]);
+    const currentContext = useMemo(() => {
+        if (view === 'history') return data.week; // Fallback context
+        return data[view];
+    }, [data, view]);
 
     const updateContext = useCallback((newGoals: Goal[]) => {
+        if (view === 'history') return;
         setData(prev => ({
             ...prev,
-            [view]: { ...prev[view], goals: newGoals }
+            [view]: { ...prev[view as 'week' | 'month' | 'quarter'], goals: newGoals }
         }));
     }, [view]);
 
     // --- LOGIC ---
 
     const handleCreateGoal = (title: string) => {
+        if (view === 'history') return;
+
         const now = new Date();
         const startDate = now.toISOString().split('T')[0];
 
@@ -86,12 +91,13 @@ export const PlanningModule: React.FC = () => {
     };
 
     const handleUpdateGoal = useCallback((updated: Goal) => {
+        if (view === 'history') return;
         setData(prev => {
-            const currentGoals = prev[view].goals;
+            const currentGoals = prev[view as 'week' | 'month' | 'quarter'].goals;
             const newGoals = currentGoals.map(g => g.id === updated.id ? updated : g);
             return {
                 ...prev,
-                [view]: { ...prev[view], goals: newGoals }
+                [view]: { ...prev[view as 'week' | 'month' | 'quarter'], goals: newGoals }
             };
         });
         if (editingGoal && editingGoal.id === updated.id) setEditingGoal(updated);
@@ -110,12 +116,14 @@ export const PlanningModule: React.FC = () => {
 
     const handleDelete = useCallback((id: number) => {
         if (!confirm("¿Eliminar permanentemente?")) return;
+        if (view === 'history') return;
         setData(prev => {
-            const currentGoals = prev[view].goals;
+            const v = view as 'week' | 'month' | 'quarter';
+            const currentGoals = prev[v].goals;
             const newGoals = currentGoals.filter(g => g.id !== id);
             return {
                 ...prev,
-                [view]: { ...prev[view], goals: newGoals }
+                [v]: { ...prev[v], goals: newGoals }
             };
         });
         setEditingGoal(null);
@@ -144,7 +152,10 @@ export const PlanningModule: React.FC = () => {
         return Math.round((totalProgress / goal.keyResults.length) * 100);
     }, []);
 
-    const activeGoals = useMemo(() => currentContext.goals.filter(g => g.status === 'active'), [currentContext.goals]);
+    const activeGoals = useMemo(() => {
+        if (view === 'history') return [];
+        return currentContext.goals.filter(g => g.status === 'active');
+    }, [currentContext.goals, view]);
 
     const historyGoals = useMemo(() => {
         let goals: { g: Goal, type: 'week' | 'month' | 'quarter' }[] = [];
@@ -180,7 +191,8 @@ export const PlanningModule: React.FC = () => {
     const getViewTitle = useCallback(() => {
         if (view === 'week') return 'SEMANA';
         if (view === 'month') return 'MES';
-        return 'TRIMESTRE';
+        if (view === 'quarter') return 'TRIMESTRE';
+        return 'HISTORIAL';
     }, [view]);
 
     return (
@@ -194,51 +206,48 @@ export const PlanningModule: React.FC = () => {
                             {['week', 'month', 'quarter'].map((t) => (
                                 <button
                                     key={t}
-                                    onClick={() => { setView(t as any); setTab('active'); }}
+                                    onClick={() => setView(t as any)}
                                     className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap ${view === t ? 'bg-neuro-purple text-white shadow-[0_0_15px_rgba(112,0,255,0.4)]' : 'text-slate-500 hover:text-white'}`}
                                 >
                                     {t === 'week' ? 'Semana' : t === 'month' ? 'Mes' : 'Trim.'}
                                 </button>
                             ))}
+                            {/* Separator */}
+                            <div className="w-px bg-slate-800 mx-1 my-2"></div>
+                            <button
+                                onClick={() => setView('history')}
+                                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap ${view === 'history' ? 'bg-neuro-cyan text-black shadow-[0_0_15px_rgba(6,182,212,0.4)]' : 'text-slate-500 hover:text-neuro-cyan'}`}
+                            >
+                                HISTORIAL
+                            </button>
                         </div>
-                        <div className="text-right">
-                            <div className="flex items-center justify-end gap-2 mb-1">
-                                <span className="text-[10px] font-mono text-slate-500 block">PROGRESO {getViewTitle()}</span>
-                                <button onClick={() => setShowConfig(true)} className="text-slate-500 hover:text-white">⚙️</button>
+
+                        {view !== 'history' && (
+                            <div className="text-right">
+                                <div className="flex items-center justify-end gap-2 mb-1">
+                                    <span className="text-[10px] font-mono text-slate-500 block">PROGRESO {getViewTitle()}</span>
+                                    <button onClick={() => setShowConfig(true)} className="text-slate-500 hover:text-white">⚙️</button>
+                                </div>
+                                <span className={`text-2xl font-black font-mono ${progressColor}`}>
+                                    {totalPeriodProgress}%
+                                </span>
                             </div>
-                            <span className={`text-2xl font-black font-mono ${progressColor}`}>
-                                {totalPeriodProgress}%
-                            </span>
+                        )}
+                    </div>
+
+                    {/* Global Bar (Only for active views) */}
+                    {view !== 'history' && (
+                        <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                            <div
+                                className={`h-full ${progressBarColor} transition-all duration-1000 ease-out shadow-[0_0_10px_currentColor]`}
+                                style={{ width: `${totalPeriodProgress}%` }}
+                            ></div>
                         </div>
-                    </div>
-
-                    {/* Global Bar */}
-                    <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                        <div
-                            className={`h-full ${progressBarColor} transition-all duration-1000 ease-out shadow-[0_0_10px_currentColor]`}
-                            style={{ width: `${totalPeriodProgress}%` }}
-                        ></div>
-                    </div>
-                </div>
-
-                {/* Tabs */}
-                <div className="flex border-b border-slate-800">
-                    <button
-                        onClick={() => setTab('active')}
-                        className={`px-6 py-3 text-sm font-bold border-b-2 transition-colors ${tab === 'active' ? 'border-neuro-cyan text-neuro-cyan' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
-                    >
-                        ACTIVOS
-                    </button>
-                    <button
-                        onClick={() => setTab('history')}
-                        className={`px-6 py-3 text-sm font-bold border-b-2 transition-colors ${tab === 'history' ? 'border-neuro-cyan text-neuro-cyan' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
-                    >
-                        HISTORIAL
-                    </button>
+                    )}
                 </div>
 
                 {/* Content Area */}
-                {tab === 'active' ? (
+                {view !== 'history' ? (
                     <div className="space-y-4">
                         {activeGoals.map(goal => (
                             <GoalCard
@@ -257,7 +266,7 @@ export const PlanningModule: React.FC = () => {
                         </button>
                     </div>
                 ) : (
-                    <div className="grid lg:grid-cols-3 gap-6">
+                    <div className="grid lg:grid-cols-3 gap-6 animate-[fadeIn_0.5s_ease-out]">
                         {/* LEFT COLUMN: HISTORY LIST */}
                         <div className="lg:col-span-2 space-y-4">
                             <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
@@ -267,7 +276,7 @@ export const PlanningModule: React.FC = () => {
                                         onClick={() => setHistoryFilter(f as any)}
                                         className={`px-3 py-1 rounded text-[10px] font-bold uppercase ${historyFilter === f ? 'bg-neuro-cyan text-black' : 'bg-slate-800 text-slate-400'}`}
                                     >
-                                        {f === 'all' ? 'Todos' : f}
+                                        {f === 'all' ? 'Todos' : f === 'week' ? 'Semana' : f === 'month' ? 'Mes' : 'trim.'}
                                     </button>
                                 ))}
                             </div>
