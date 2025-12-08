@@ -29,13 +29,13 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
     const [cycleCount, setCycleCount] = useState(0);
     const [scale, setScale] = useState(1);
     const [stepDuration, setStepDuration] = useState(1);
-    
+
     // UI Visuals
     const [activeSubtitle, setActiveSubtitle] = useState("Toca INICIAR para comenzar");
     const [audioMode, setAudioMode] = useState<'brown' | '40hz' | 'silent'>('brown');
     const [isResting, setIsResting] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
-    
+
     // Refs
     const timerRef = useRef<number | null>(null);
     const breathingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -53,16 +53,16 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
     useEffect(() => {
         if (!isMountedRef.current) return;
         if (type !== 'focus') return;
-        
+
         if (status === 'paused' || status === 'idle' || isResting) {
-             audio.stopBg();
-             return;
+            audio.stopBg();
+            return;
         }
-        
+
         const t = setTimeout(() => {
-             if (audioMode === 'brown') audio.playBrownNoise();
-             else if (audioMode === '40hz') audio.playBinaural();
-             else audio.stopBg();
+            if (audioMode === 'brown') audio.playBrownNoise();
+            else if (audioMode === '40hz') audio.playBinaural();
+            else audio.stopBg();
         }, 100);
         return () => clearTimeout(t);
     }, [audioMode, status, isResting, type]);
@@ -71,21 +71,21 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
     useEffect(() => {
         isMountedRef.current = true;
         let duration = 0;
-        
+
         if (['gaze', 'panoramic'].includes(type)) {
             duration = Number(config.duration) || 60;
         } else if (type === 'focus' || type === 'nsdr') {
             duration = (Number(config.duration) || 20) * 60;
         } else if (config.duration) {
-             duration = Number(config.duration) * 60;
+            duration = Number(config.duration) * 60;
         }
-        
+
         setTimeLeft(duration);
         setTotalDuration(duration);
         setElapsedTime(0);
         setCycleCount(0);
         setIsResting(false);
-        
+
         if (isStopwatch) {
             setPhase("Modo Libre (Cronómetro)");
         }
@@ -96,19 +96,19 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
             if (breathingTimeoutRef.current) clearTimeout(breathingTimeoutRef.current);
             audio.stopBg();
         };
-    }, []); 
+    }, []);
 
     const handleStart = () => {
         audio.init();
         setStatus('running');
         if (!isStopwatch) setPhase('Preparado');
-        
+
         if (type === 'nsdr') {
-             audio.speak("Iniciando sesión de descanso profundo sin dormir.");
-             setActiveSubtitle("Iniciando sesión de descanso profundo sin dormir.");
+            audio.speak("Iniciando sesión de descanso profundo sin dormir.", config.voiceURI, config.rate, config.pitch);
+            setActiveSubtitle("Iniciando sesión de descanso profundo sin dormir.");
         }
         if (type === 'panoramic') {
-             setActiveSubtitle("Expande tu visión. Mira al horizonte. Disuelve tu enfoque.");
+            setActiveSubtitle("Expande tu visión. Mira al horizonte. Disuelve tu enfoque.");
         }
     };
 
@@ -141,12 +141,12 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
                         }
 
                         if (type === 'nsdr' && status === 'running') {
-                             const elapsed = totalDuration - prev;
-                             const step = NSDR_SCRIPT.find(s => Math.abs(s.time - elapsed) < 1);
-                             if (step) {
-                                 audio.speak(step.text);
-                                 setActiveSubtitle(step.text);
-                             }
+                            const elapsed = totalDuration - prev;
+                            const step = NSDR_SCRIPT.find(s => Math.abs(s.time - elapsed) < 1);
+                            if (step) {
+                                audio.speak(step.text, config.voiceURI, config.rate, config.pitch);
+                                setActiveSubtitle(step.text);
+                            }
                         }
                         return prev - 1;
                     });
@@ -160,17 +160,17 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
 
     const startRest = () => {
         setIsResting(true);
-        setTimeLeft(20 * 60); 
+        setTimeLeft(20 * 60);
         setTotalDuration(20 * 60);
         setStatus('rest');
         setPhase("Recuperación Pasiva");
         audio.stopBg();
     };
-    
+
     const resetSession = () => {
         audio.stopBg();
         let duration = 0;
-        
+
         if (['gaze', 'panoramic'].includes(type)) {
             duration = Number(config.duration) || 60;
         } else if (type === 'focus' || type === 'nsdr') {
@@ -178,7 +178,7 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
         } else if (config.duration) {
             duration = Number(config.duration) * 60;
         }
-        
+
         setTimeLeft(duration);
         setTotalDuration(duration);
         setElapsedTime(0);
@@ -195,7 +195,7 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
         if (config.duration && type !== 'active' && type !== 'tummo' && type !== 'calm' && type !== 'custom') return;
 
         const breathConfig = config;
-        
+
         const runStep = (text: string, s: number, dur: number, tone: 'in' | 'out' | 'hold', next: () => void) => {
             if (!isMountedRef.current || status !== 'running') return;
             setPhase(text);
@@ -217,7 +217,7 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
             if (breathConfig.double) {
                 runStep("INHALA (80%)", 1.3, 1.5, 'in', () =>
                     runStep("INHALA (100%)", 1.5, 0.8, 'in', () =>
-                        runStep("EXHALA", 1.0, breathConfig.exhale, 'out', () => 
+                        runStep("EXHALA", 1.0, breathConfig.exhale, 'out', () =>
                             runStep("ESPERA", 1.0, 1.0, 'hold', () => {
                                 setCycleCount(c => c + 1);
                                 cycle();
@@ -230,9 +230,9 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
                 const h2 = breathConfig.hold2 || 0;
                 runStep("INHALA", 1.5, breathConfig.inhale, 'in', () => {
                     const step2 = () => runStep("EXHALA", 1.0, breathConfig.exhale, 'out', () => {
-                         const step3 = () => { setCycleCount(c => c + 1); cycle(); };
-                         if (h2 > 0) runStep("VACÍO", 1.0, h2, 'hold', step3);
-                         else step3();
+                        const step3 = () => { setCycleCount(c => c + 1); cycle(); };
+                        if (h2 > 0) runStep("VACÍO", 1.0, h2, 'hold', step3);
+                        else step3();
                     });
                     if (h1 > 0) runStep("RETÉN", 1.5, h1, 'hold', step2);
                     else step2();
@@ -309,13 +309,13 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
             </div>
 
             {/* Main Visualizer */}
-            <div className="relative z-10 flex flex-col items-center w-full max-w-lg mb-10">
+            <div className="relative z-10 flex flex-col items-center w-full max-w-lg mb-32">
                 {!isBreathingSession ? (
                     <div className="text-center w-full relative">
                         <div className={`${['gaze', 'panoramic'].includes(type) ? 'fixed bottom-8 right-8 text-2xl opacity-30 hover:opacity-100' : 'text-8xl mb-8'} font-black text-white font-mono tracking-tighter tabular-nums transition-all duration-500`}>
                             {isStopwatch ? formatTime(elapsedTime) : formatTime(timeLeft)}
                         </div>
-                        
+
                         {type === 'focus' && !isResting && (
                             <div className="flex flex-col gap-4 items-center">
                                 <div className="flex bg-slate-900/80 p-1 rounded-lg border border-slate-700">
@@ -331,7 +331,7 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
                             </div>
                         )}
                         {/* NSDR */}
-                         {type === 'nsdr' && (
+                        {type === 'nsdr' && (
                             <div className="w-full mt-8 px-4">
                                 <div className="min-h-[60px] flex items-center justify-center mb-6">
                                     <p className="text-neuro-green font-medium text-center leading-relaxed text-lg animate-[fadeIn_0.5s]">
@@ -339,7 +339,7 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
                                     </p>
                                 </div>
                                 <div className="h-1 bg-slate-800 rounded-full w-full relative">
-                                    <div 
+                                    <div
                                         className="h-full bg-neuro-green absolute left-0 top-0 transition-all duration-1000"
                                         style={{ width: `${((totalDuration - timeLeft) / totalDuration) * 100}%` }}
                                     ></div>
@@ -347,7 +347,7 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
                             </div>
                         )}
                         {type === 'panoramic' && (
-                             <div className="mt-8 px-8">
+                            <div className="mt-8 px-8">
                                 <p className="text-neuro-blue font-medium text-center mb-8 animate-pulse">
                                     {activeSubtitle}
                                 </p>
@@ -355,21 +355,21 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
                                     <div className="absolute left-0 bottom-0 w-full h-full border-b-4 border-neuro-blue rounded-[50%] animate-[pulse_4s_ease-in-out_infinite] opacity-50"></div>
                                     <div className="absolute left-[-20%] bottom-[-20%] w-[140%] h-[140%] border-b-2 border-cyan-400 rounded-[50%] animate-[pulse_5s_ease-in-out_infinite] opacity-30"></div>
                                 </div>
-                             </div>
+                            </div>
                         )}
                         {type === 'gaze' && (
-                             <div className="mt-12 relative w-12 h-12 mx-auto">
-                                 <div className="absolute inset-0 bg-neuro-cyan rounded-full animate-ping opacity-20"></div>
-                                 <div className="relative w-full h-full bg-neuro-cyan rounded-full shadow-[0_0_30px_cyan]"></div>
-                             </div>
+                            <div className="mt-12 relative w-12 h-12 mx-auto">
+                                <div className="absolute inset-0 bg-neuro-cyan rounded-full animate-ping opacity-20"></div>
+                                <div className="relative w-full h-full bg-neuro-cyan rounded-full shadow-[0_0_30px_cyan]"></div>
+                            </div>
                         )}
                     </div>
                 ) : (
                     // Breathing Visualizer
                     <>
-                        <div 
-                            className={`w-64 h-64 rounded-full border-4 ${borderClass} flex flex-col items-center justify-center transition-all shadow-[0_0_50px_rgba(0,0,0,0.5)]`}
-                            style={{ 
+                        <div
+                            className={`w-56 h-56 rounded-full border-4 ${borderClass} flex flex-col items-center justify-center transition-all shadow-[0_0_50px_rgba(0,0,0,0.5)]`}
+                            style={{
                                 transform: `scale(${scale})`,
                                 transitionDuration: `${stepDuration}s`,
                                 transitionTimingFunction: 'ease-in-out',
@@ -379,7 +379,7 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
                         >
                             <span className="text-xl font-bold text-slate-300 uppercase tracking-widest mb-1 text-center px-2 leading-tight">{phase}</span>
                         </div>
-                        <div className="fixed bottom-48 font-mono text-slate-500 pointer-events-none z-0">
+                        <div className="absolute -bottom-16 font-mono text-slate-500 pointer-events-none z-20">
                             CICLO <span className="text-white text-xl">{cycleCount}</span> <span className="text-xs">/ {config.cycles}</span>
                         </div>
                     </>
@@ -388,15 +388,15 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
 
             {/* Controls */}
             <div className="absolute bottom-32 flex gap-4 z-20">
-                <button 
+                <button
                     onClick={resetSession}
                     className="bg-slate-800 text-white border border-slate-600 px-6 py-3 rounded-full font-bold text-sm hover:bg-slate-700 transition-colors shadow-lg"
                 >
                     REINICIAR
                 </button>
-                
+
                 {status !== 'idle' ? (
-                     <button 
+                    <button
                         onClick={() => {
                             if (status === 'paused') {
                                 handleStart();
@@ -420,7 +420,7 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
                 )}
 
                 {type === 'focus' && !isResting && !isStopwatch && (
-                    <button 
+                    <button
                         onClick={startRest}
                         className="bg-neuro-blue text-white px-6 py-3 rounded-full font-bold text-sm hover:brightness-110 transition-colors shadow-lg"
                     >
