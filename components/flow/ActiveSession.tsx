@@ -98,15 +98,17 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
         };
     }, []);
 
-    const handleStart = () => {
+    const handleStart = async () => {
         audio.init();
-        setStatus('running');
         if (!isStopwatch) setPhase('Preparado');
 
         if (type === 'nsdr') {
-            audio.speak("Iniciando sesión de descanso profundo sin dormir.", config.voiceURI, config.rate, config.pitch);
             setActiveSubtitle("Iniciando sesión de descanso profundo sin dormir.");
+            await audio.speak("Iniciando sesión de descanso profundo sin dormir.", config.voiceURI, config.rate, config.pitch);
         }
+
+        setStatus('running');
+
         if (type === 'panoramic') {
             setActiveSubtitle("Expande tu visión. Mira al horizonte. Disuelve tu enfoque.");
         }
