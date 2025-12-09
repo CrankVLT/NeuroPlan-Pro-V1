@@ -4,16 +4,53 @@ import { FlowSessionType } from '../../types';
 import { useAudio } from '../../hooks/useAudio';
 
 const NSDR_SCRIPT = [
-    { time: 0, text: "Bienvenido a NSDR. Encuentra una posición cómoda." },
-    { time: 15, text: "Cierra los ojos. Inhala profundamente... y suelta." },
-    { time: 45, text: "Lleva tu atención a tus pies. Relájalos completamente." },
-    { time: 90, text: "Sube la atención a tus piernas. Déjalas caer pesadamente." },
-    { time: 150, text: "Relaja el abdomen. Respiración natural." },
-    { time: 240, text: "Siente el peso de tus brazos y hombros." },
-    { time: 330, text: "Relaja la mandíbula y los ojos. Rostro sin expresión." },
-    { time: 600, text: "Visualízate flotando en un espacio seguro." },
-    { time: 1100, text: "Lentamente, comienza a mover los dedos." },
-    { time: 1180, text: "Abre los ojos. Te sientes renovado." }
+    { time: 4, text: "Bienvenido. Vamos a dedicar los próximos 20 minutos a un descanso profundo." },
+    { time: 10, text: "Lo único que tienes que hacer es escuchar mi voz y seguir las instrucciones sencillas que te daré." },
+    { time: 20, text: "Busca un lugar donde puedas recostarte cómodamente o sentarte en una silla reclinable." },
+    { time: 30, text: "Acomoda tu cuerpo boca arriba. Deja que tus brazos descansen a los lados, con las palmas de las manos mirando hacia el techo si es posible." },
+    { time: 45, text: "Separa un poco las piernas para que tus pies caigan relajados hacia los lados." },
+    { time: 60, text: "Haz cualquier movimiento que necesites ahora para estar lo más cómodo posible, porque la idea es que tu cuerpo se quede quieto durante toda la sesión." },
+    { time: 75, text: "Cierra los ojos suavemente. Imagina que apagas un interruptor interno." },
+    { time: 90, text: "Tu cuerpo está seguro y sostenido por la superficie debajo de ti. No tienes que hacer nada, no tienes que ir a ningún lado. Solo estar aquí." },
+
+    // Fase 2: Respiración (02:00 - 05:00)
+    { time: 120, text: "Vamos a usar la respiración para indicarle a tu sistema nervioso que es hora de bajar el ritmo." },
+    { time: 132, text: "Vamos a hacer una respiración especial: quiero que tomes aire por la nariz llenando tus pulmones, y al final, toma un poquito más de aire con una segunda inhalación corta." },
+    { time: 148, text: "Ahora, suelta todo el aire muy despacio por la boca, como si estuvieras soplando suavemente a través de un popote o pajilla, hasta vaciarte por completo. Vamos a repetirlo." },
+    { time: 165, text: "Inhala profundo por la nariz... toma ese segundo sorbo extra de aire... y ahora exhala largo y lento por la boca, dejando que tus hombros y tu espalda se derritan hacia el suelo." },
+    { time: 200, text: "Hazlo una vez más a tu propio ritmo. Siente cómo con la salida del aire, cualquier tensión se va de tu cuerpo." },
+    { time: 240, text: "Ahora, deja que tu respiración vuelva a ser normal. No intentes controlarla. Deja que tu cuerpo respire por sí solo, de forma natural y sin esfuerzo." },
+
+    // Fase 3: Recorrido Corporal (05:00 - 12:00)
+    { time: 300, text: "Vamos a hacer un viaje con tu atención por diferentes partes de tu cuerpo. No es necesario que muevas nada." },
+    { time: 315, text: "Solo lleva tu mente a la zona que yo nombre, como si una luz suave la iluminara por un instante." },
+    { time: 330, text: "Lleva tu atención a la mano derecha. Siente el dedo pulgar... el índice... el dedo medio... el anular... y el meñique." },
+    { time: 350, text: "Siente la palma de la mano y la muñeca." },
+    { time: 375, text: "Sube tu atención por el antebrazo derecho... el codo... el brazo... hasta llegar al hombro derecho. Siente cómo ese hombro se relaja completamente." },
+    { time: 420, text: "Ahora cambia tu atención a la mano izquierda. Siente el pulgar... índice... medio... anular... y meñique." },
+    { time: 440, text: "La palma de la mano... la muñeca. Sube por el antebrazo... codo... brazo... hasta el hombro izquierdo." },
+    { time: 480, text: "Lleva tu mente hacia tus pies. Siente los dedos del pie derecho y del pie izquierdo. Los talones." },
+    { time: 510, text: "Sube por las pantorrillas... las rodillas... y los muslos. Siente cómo tus piernas pesan, están muy relajadas." },
+    { time: 570, text: "Enfócate en tu espalda. Siente cómo toda tu columna vertebral descansa sobre la superficie. Siente tu abdomen subiendo y bajando suavemente. Siente tu pecho." },
+    { time: 645, text: "Finalmente, relaja el cuello. Suelta la mandíbula, deja que los dientes se separen un poco. Relaja la lengua, las mejillas y los ojos. Alisa tu frente. Todo tu cuerpo está en pausa." },
+
+    // Fase 4: Sensaciones (12:00 - 16:00)
+    { time: 720, text: "Ahora imagina que tu cuerpo es muy pesado. Como si estuvieras hecho de plomo o de piedra." },
+    { time: 740, text: "Siente cómo la gravedad te atrae hacia abajo, hundiéndote cómodamente en el colchón o el suelo. Pesado y relajado." },
+    { time: 810, text: "Ahora, imagina lo contrario. Siente que tu cuerpo se vuelve ligero, muy ligero. Como una pluma o una nube. Como si apenas tocaras la superficie donde estás." },
+    { time: 870, text: "Quédate en este punto medio. Tu cuerpo está profundamente dormido, pero tú sigues aquí, escuchando, despierto y tranquilo." },
+    { time: 900, text: "Si aparece algún pensamiento, no pelees con él; déjalo pasar como si fuera un pájaro cruzando el cielo y vuelve a escuchar mi voz." },
+    { time: 930, text: "Disfruta de este momento de nada. Es como recargar una batería. Estás recuperando tu energía simplemente estando quieto." },
+
+    // Fase 5: Regreso (16:00 - 18:00)
+    { time: 960, text: "Lentamente, vamos a empezar a volver. Siente de nuevo el contacto de tu cuerpo con la superficie. Escucha los sonidos lejanos que pueda haber en la habitación." },
+    { time: 1005, text: "Haz una inhalación un poco más profunda, llenándote de energía fresca. Siente cómo el aire despierta tu cuerpo por dentro." },
+    { time: 1050, text: "Recuerda dónde estás y qué hora del día es. Prepárate para moverte, pero hazlo con calma, conservando esta sensación de tranquilidad." },
+
+    // Fase 6: Despertar (18:00 - 20:00)
+    { time: 1080, text: "Empieza moviendo muy suavemente los dedos de las manos y de los pies. Haz círculos suaves con tus muñecas y tobillos." },
+    { time: 1125, text: "Si lo deseas, lleva tus brazos por encima de la cabeza y estírate como si acabaras de despertar de un sueño largo y reparador. Estira todo el cuerpo." },
+    { time: 1170, text: "Cuando te sientas listo, abre despacio los ojos. Tómate un momento para acostumbrarte a la luz. Te has regalado un descanso profundo y efectivo." }
 ];
 
 export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExit: () => void; onComplete: () => void }> = ({ type, config, onExit, onComplete }) => {
@@ -32,9 +69,13 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
 
     // UI Visuals
     const [activeSubtitle, setActiveSubtitle] = useState("Toca INICIAR para comenzar");
-    const [audioMode, setAudioMode] = useState<'brown' | '40hz' | 'silent'>('brown');
+    const [audioMode, setAudioMode] = useState<'brown' | '40hz' | 'bowl' | 'silent'>('brown');
     const [isResting, setIsResting] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
+    const [bgVolume, setBgVolume] = useState(0.2);
+    const [voiceVolume, setVoiceVolume] = useState(0.5); // New state for Voice Volume
+    const [showVolume, setShowVolume] = useState(false);
+    const [isAudioReady, setIsAudioReady] = useState(false); // Gate controls while audio inits
 
     // Refs
     const timerRef = useRef<number | null>(null);
@@ -52,7 +93,7 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
     // Audio Effect Logic
     useEffect(() => {
         if (!isMountedRef.current) return;
-        if (type !== 'focus') return;
+        if (type !== 'focus' && type !== 'nsdr') return; // Enable for NSDR too
 
         if (status === 'paused' || status === 'idle' || isResting) {
             audio.stopBg();
@@ -62,6 +103,7 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
         const t = setTimeout(() => {
             if (audioMode === 'brown') audio.playBrownNoise();
             else if (audioMode === '40hz') audio.playBinaural();
+            else if (audioMode === 'bowl') audio.playBowl();
             else audio.stopBg();
         }, 100);
         return () => clearTimeout(t);
@@ -101,13 +143,14 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
     const isAtStart = isStopwatch ? elapsedTime === 0 : timeLeft === totalDuration;
 
     const handleStart = async () => {
+        // audio.init() is pre-warmed on mount, but we ensure it here just in case (non-blocking)
         audio.init();
         if (!isStopwatch) setPhase('Preparado');
 
         // Only play intro if starting from the beginning
         if (type === 'nsdr' && isAtStart) {
             setActiveSubtitle("Iniciando sesión de descanso profundo sin dormir.");
-            await audio.speak("Iniciando sesión de descanso profundo sin dormir.", config.voiceURI, config.rate, config.pitch);
+            audio.speak("Iniciando sesión de descanso profundo sin dormir.", config.voiceURI, config.rate, config.pitch);
         }
 
         setStatus('running');
@@ -117,12 +160,28 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
         }
     };
 
+    // Pre-warm Audio Engine on Mount
+    useEffect(() => {
+        // Enforce a minimum visible delay (3.5s) so user perceives initialization
+        const minDelay = new Promise(resolve => setTimeout(resolve, 3500));
+        const audioInit = audio.init();
+
+        Promise.all([audioInit, minDelay]).then(() => {
+            console.log("Audio Engine Ready");
+            setIsAudioReady(true);
+        }).catch(e => {
+            console.warn("Audio Init Failed", e);
+            setIsAudioReady(true); // Enable anyway
+        });
+    }, []);
+
     // Audio Pause/Resume Sync
     useEffect(() => {
         if (status === 'paused') {
             audio.pauseSpeech();
-            if (audio.stopNoise) audio.stopNoise(); // Use stopNoise if available to avoid cancelling speech
-            else audio.stopBg(); // Fallback if type definition not updated yet
+            if (audio.stopTone) audio.stopTone(); // Stop breathing tones
+            if (audio.stopNoise) audio.stopNoise(); // Stop bg noise
+            else audio.stopBg();
         } else if (status === 'running') {
             audio.resumeSpeech();
             // Bg noise resumes via its own effect
@@ -314,13 +373,72 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
                     </h3>
                     {isStopwatch && <span className="text-[10px] text-neuro-cyan font-bold uppercase tracking-wider">MODO LIBRE (CRONÓMETRO)</span>}
                 </div>
-                <div className="flex gap-4">
-                    <button
-                        onClick={toggleMute}
-                        className={`text-2xl transition-all duration-300 ${isMuted ? 'text-slate-600 scale-90' : 'text-white scale-110'}`}
-                    >
-                        {isMuted ? '🔇' : '🔊'}
-                    </button>
+                <div className="flex gap-4 items-start z-50">
+                    <div className="relative">
+                        <button
+                            onClick={() => setShowVolume(!showVolume)}
+                            className={`text-2xl transition-all duration-300 ${isMuted ? 'text-slate-600' : 'text-white'} hover:scale-110 active:scale-95`}
+                        >
+                            {isMuted ? '🔇' : '🔊'}
+                        </button>
+
+                        {/* Volume Popover (Click to toggle) */}
+                        {showVolume && (
+                            <div className="absolute top-full right-0 mt-4 bg-slate-900/95 border border-slate-700 rounded-xl p-4 flex flex-col items-center gap-4 shadow-2xl backdrop-blur-md animate-fadeIn z-50 min-w-[140px]">
+                                <div className="flex gap-4">
+                                    {/* Voice Slider */}
+                                    <div className="flex flex-col items-center gap-2">
+                                        <span className="text-[10px] font-mono text-neuro-purple font-bold tracking-widest writing-vertical">VOZ</span>
+                                        <div className="h-32 flex items-center justify-center relative py-2">
+                                            <input
+                                                type="range"
+                                                min="0"
+                                                max="1"
+                                                step="0.01"
+                                                value={voiceVolume}
+                                                onChange={(e) => {
+                                                    const v = parseFloat(e.target.value);
+                                                    setVoiceVolume(v);
+                                                    if (audio.setVolume) audio.setVolume(v);
+                                                }}
+                                                className="w-1.5 h-28 bg-slate-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-neuro-purple [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-lg hover:[&::-webkit-slider-thumb]:scale-125 transition-all"
+                                                style={{ writingMode: 'vertical-lr', direction: 'rtl' } as any}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Background Slider */}
+                                    <div className="flex flex-col items-center gap-2">
+                                        <span className="text-[10px] font-mono text-slate-400 font-bold tracking-widest writing-vertical">FONDO</span>
+                                        <div className="h-32 flex items-center justify-center relative py-2">
+                                            <input
+                                                type="range"
+                                                min="0"
+                                                max="1"
+                                                step="0.01"
+                                                value={bgVolume}
+                                                onChange={(e) => {
+                                                    const v = parseFloat(e.target.value);
+                                                    setBgVolume(v);
+                                                    if (audio.setBgVolume) audio.setBgVolume(v);
+                                                }}
+                                                className="w-1.5 h-28 bg-slate-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-slate-400 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-lg hover:[&::-webkit-slider-thumb]:scale-125 transition-all"
+                                                style={{ writingMode: 'vertical-lr', direction: 'rtl' } as any}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={toggleMute}
+                                    className="text-[10px] uppercase font-bold text-slate-400 hover:text-white border-t border-slate-700 pt-3 w-full transition-colors"
+                                >
+                                    {isMuted ? 'UNMUTE' : 'MUTE'}
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
                     <button onClick={onExit} className="p-2 rounded-full bg-slate-800/50 hover:bg-slate-700 text-white">✕</button>
                 </div>
             </div>
@@ -333,15 +451,17 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
                             {isStopwatch ? formatTime(elapsedTime) : formatTime(timeLeft)}
                         </div>
 
-                        {type === 'focus' && !isResting && (
+                        {(type === 'focus' || type === 'nsdr') && !isResting && (
                             <div className="flex flex-col gap-4 items-center">
                                 <div className="flex bg-slate-900/80 p-1 rounded-lg border border-slate-700">
                                     <button onClick={() => setAudioMode('brown')} className={`px-3 py-1 text-xs font-mono rounded ${audioMode === 'brown' ? 'bg-neuro-purple text-white' : 'text-slate-400'}`}>RUIDO CAFÉ</button>
+                                    <button onClick={() => setAudioMode('bowl')} className={`px-3 py-1 text-xs font-mono rounded ${audioMode === 'bowl' ? 'bg-neuro-purple text-white' : 'text-slate-400'}`}>CUENCOS</button>
                                     <button onClick={() => setAudioMode('40hz')} className={`px-3 py-1 text-xs font-mono rounded ${audioMode === '40hz' ? 'bg-neuro-purple text-white' : 'text-slate-400'}`}>40HZ</button>
                                     <button onClick={() => setAudioMode('silent')} className={`px-3 py-1 text-xs font-mono rounded ${audioMode === 'silent' ? 'bg-neuro-purple text-white' : 'text-slate-400'}`}>SILENCIO</button>
                                 </div>
                                 <p className="text-[10px] text-slate-400 text-center max-w-[250px] leading-tight min-h-[2.5em]">
                                     {audioMode === 'brown' && "Ruido de baja frecuencia. Enmascara el entorno y calma la amígdala."}
+                                    {audioMode === 'bowl' && "Resonancia armónica. Induce estados meditativos profundos."}
                                     {audioMode === '40hz' && "Ondas Gamma. Sincroniza la actividad neuronal para máxima concentración."}
                                     {audioMode === 'silent' && "Ausencia de estímulos. Ideal si tu entorno ya es silencioso."}
                                 </p>
@@ -407,7 +527,8 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
             <div className="absolute bottom-32 flex gap-4 z-20">
                 <button
                     onClick={resetSession}
-                    className="bg-slate-800 text-white border border-slate-600 px-6 py-3 rounded-full font-bold text-sm hover:bg-slate-700 transition-colors shadow-lg"
+                    disabled={!isAudioReady}
+                    className={`bg-slate-800 text-white border border-slate-600 px-6 py-3 rounded-full font-bold text-sm transition-colors shadow-lg ${!isAudioReady ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-700'}`}
                 >
                     REINICIAR
                 </button>
@@ -415,14 +536,17 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
                 {status !== 'idle' ? (
                     <button
                         onClick={() => {
+                            if (!isAudioReady) return;
                             if (status === 'paused') {
                                 handleStart();
                             } else {
                                 setStatus(s => s === 'running' || s === 'rest' ? 'paused' : (isResting ? 'rest' : 'running'));
                             }
                         }}
-                        className="bg-white text-black px-8 py-3 rounded-full font-bold text-sm hover:bg-slate-200 transition-colors shadow-lg min-w-[140px]"
+                        disabled={!isAudioReady}
+                        className={`bg-white text-black px-8 py-3 rounded-full font-bold text-sm transition-colors shadow-lg min-w-[140px] flex items-center justify-center gap-2 ${!isAudioReady ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-200'}`}
                     >
+                        {!isAudioReady && <span className="w-3 h-3 border-2 border-black/30 border-t-black rounded-full animate-spin" />}
                         {status === 'paused' ? (isAtStart ? 'INICIAR' : 'CONTINUAR') : 'PAUSAR'}
                     </button>
                 ) : null}

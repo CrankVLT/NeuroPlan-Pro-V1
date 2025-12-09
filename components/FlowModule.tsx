@@ -5,69 +5,69 @@ import { SettingsModal } from './flow/SettingsModal';
 import { NeuroDiagnostic } from './flow/NeuroDiagnostic';
 
 const DEFAULT_FLOW_STATE: FlowState = {
-    gaze: { duration: 45 }, 
+    gaze: { duration: 45 },
     active: { inhale: 1.5, exhale: 1.0, hold1: 0, hold2: 0, cycles: 30 },
-    tummo: { inhale: 1.5, exhale: 1.0, hold1: 0, hold2: 15, cycles: 30 }, 
-    focus: { duration: 90 }, 
+    tummo: { inhale: 1.5, exhale: 1.0, hold1: 0, hold2: 15, cycles: 30 },
+    focus: { duration: 90 },
     calm: { inhale: 4, hold1: 7, exhale: 8, hold2: 0, cycles: 15, double: true },
-    nsdr: { duration: 20 }, 
-    panoramic: { duration: 120 }, 
+    nsdr: { duration: 20, rate: 0.85, pitch: 0.9 },
+    panoramic: { duration: 120 },
     custom: { inhale: 4, hold1: 4, exhale: 4, hold2: 4, cycles: 10 }
 };
 
 const TOOLS = [
-    { 
-        id: 'active', 
-        title: 'Activación', 
-        color: 'red', 
+    {
+        id: 'active',
+        title: 'Activación',
+        color: 'red',
         time: '3 min',
         desc: 'Hiperventilación controlada. Eleva la adrenalina para eliminar la fatiga y el letargo.',
         btnText: 'text-white'
     },
-    { 
-        id: 'gaze', 
-        title: 'Enfoque Visual', 
-        color: 'cyan', 
+    {
+        id: 'gaze',
+        title: 'Enfoque Visual',
+        color: 'cyan',
         time: '45 seg',
         desc: 'Suprime las microsacadas (movimientos oculares involuntarios) para activar el Locus Coeruleus y preparar la atención.',
-        btnText: 'text-black' 
+        btnText: 'text-black'
     },
-    { 
-        id: 'focus', 
-        title: 'Trabajo Profundo', 
-        color: 'purple', 
+    {
+        id: 'focus',
+        title: 'Trabajo Profundo',
+        color: 'purple',
         time: '90 min',
         desc: 'Ciclo Ultradiano. El límite biológico máximo para mantener la capacidad cognitiva sostenida y la neuroplasticidad.',
         btnText: 'text-white'
     },
-    { 
-        id: 'tummo', 
-        title: 'Tummo (Wim Hof)', 
-        color: 'red', 
+    {
+        id: 'tummo',
+        title: 'Tummo (Wim Hof)',
+        color: 'red',
         time: '5 min',
         desc: 'Respiración intensa + Retención. Entrena el sistema nervioso para adaptarse a altos niveles de estrés.',
         btnText: 'text-white'
     },
-    { 
-        id: 'panoramic', 
-        title: 'Visión Panorámica', 
-        color: 'blue', 
+    {
+        id: 'panoramic',
+        title: 'Visión Panorámica',
+        color: 'blue',
         time: '2 min',
         desc: 'Busca una ventana o espacio abierto, mira el horizonte y trata de difuminar tu mirada. Desactiva el estrés visual y mental al instante.',
         btnText: 'text-white'
     },
-    { 
-        id: 'calm', 
-        title: 'Recuperación', 
-        color: 'blue', 
+    {
+        id: 'calm',
+        title: 'Recuperación',
+        color: 'blue',
         time: '5 min',
         desc: 'Suspiro fisiológico (doble inhalación). La herramienta más rápida conocida para reducir la ansiedad en tiempo real.',
         btnText: 'text-white'
     },
-    { 
-        id: 'nsdr', 
-        title: 'NSDR', 
-        color: 'green', 
+    {
+        id: 'nsdr',
+        title: 'NSDR',
+        color: 'green',
         time: '20 min',
         desc: 'Descanso Profundo Sin Dormir. Restaura la dopamina en el cuerpo estriado y consolida el aprendizaje.',
         btnText: 'text-black'
@@ -142,19 +142,19 @@ export const FlowModule: React.FC<FlowModuleProps> = ({ onSessionComplete }) => 
 
     const handleComplete = (type: FlowSessionType) => {
         let energyChange = 0;
-        switch(type) {
-            case 'focus': energyChange = -15; break; 
-            case 'active': 
-            case 'tummo': energyChange = -5; break; 
-            case 'gaze': energyChange = -2; break; 
-            case 'calm': 
-            case 'panoramic': energyChange = 10; break; 
-            case 'nsdr': energyChange = 25; break; 
+        switch (type) {
+            case 'focus': energyChange = -15; break;
+            case 'active':
+            case 'tummo': energyChange = -5; break;
+            case 'gaze': energyChange = -2; break;
+            case 'calm':
+            case 'panoramic': energyChange = 10; break;
+            case 'nsdr': energyChange = 25; break;
             default: energyChange = 5;
         }
-        
+
         if (onSessionComplete) onSessionComplete(energyChange);
-        setTimeout(() => setActiveSession(null), 1500); 
+        setTimeout(() => setActiveSession(null), 1500);
     };
 
     const openSettings = (e: React.MouseEvent, toolId: string) => {
@@ -164,7 +164,7 @@ export const FlowModule: React.FC<FlowModuleProps> = ({ onSessionComplete }) => 
 
     const handleDiagnosticResult = (type: FlowSessionType, reason: string) => {
         setShowDiagnostic(false);
-        if(confirm(`RECOMENDACIÓN: ${reason}\n\n¿Iniciar sesión de ${type.toUpperCase()}?`)) {
+        if (confirm(`RECOMENDACIÓN: ${reason}\n\n¿Iniciar sesión de ${type.toUpperCase()}?`)) {
             startSession(type);
         }
     };
@@ -176,42 +176,42 @@ export const FlowModule: React.FC<FlowModuleProps> = ({ onSessionComplete }) => 
     return (
         <div className="pb-8 animate-fadeIn">
             <div className="flex justify-between items-start mb-2">
-                 <h2 className="text-3xl font-black text-white">Flow Tools</h2>
-                 <button 
+                <h2 className="text-3xl font-black text-white">Flow Tools</h2>
+                <button
                     onClick={() => setShowDiagnostic(true)}
                     className="bg-neuro-purple/20 border border-neuro-purple text-neuro-purple px-4 py-2 rounded-lg text-xs font-bold hover:bg-neuro-purple hover:text-white transition-all flex items-center gap-2 animate-pulse"
-                 >
-                     <span>⚡</span> DIAGNÓSTICO
-                 </button>
+                >
+                    <span>⚡</span> DIAGNÓSTICO
+                </button>
             </div>
             <p className="text-slate-400 text-sm mb-6">Ingeniería del estado mental.</p>
-            
+
             <div className="flex border-b border-slate-800 mb-6 overflow-x-auto">
-                <button 
+                <button
                     onClick={() => setTab('tools')}
                     className={`px-6 py-3 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${tab === 'tools' ? 'border-neuro-purple text-neuro-purple' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
                 >
                     HERRAMIENTAS
                 </button>
-                <button 
+                <button
                     onClick={() => setTab('routines')}
                     className={`px-6 py-3 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${tab === 'routines' ? 'border-neuro-purple text-neuro-purple' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
                 >
                     RUTINAS
                 </button>
             </div>
-            
+
             {tab === 'tools' && (
                 <div className="grid md:grid-cols-2 gap-4">
                     {TOOLS.map((tool) => (
                         <div key={tool.id} className={`glass p-5 rounded-xl border-l-4 border-neuro-${tool.color} relative group hover:bg-slate-800/80 transition-all overflow-hidden flex flex-col`}>
                             {/* Background gradient hint */}
                             <div className={`absolute inset-0 bg-neuro-${tool.color} opacity-0 group-hover:opacity-5 transition-opacity`}></div>
-                            
+
                             <div className="relative z-10 flex-1 flex flex-col">
                                 <div className="flex justify-between mb-2 items-start">
                                     <h3 className="text-xl font-bold text-white">{tool.title}</h3>
-                                    <button 
+                                    <button
                                         onClick={(e) => openSettings(e, tool.id)}
                                         className="text-slate-500 hover:text-white p-1 rounded hover:bg-white/10 transition-colors"
                                     >
@@ -225,7 +225,7 @@ export const FlowModule: React.FC<FlowModuleProps> = ({ onSessionComplete }) => 
                                 </div>
                                 <p className="text-base text-slate-400 mb-6 min-h-[60px] leading-relaxed flex-1">{tool.desc}</p>
                                 <div className="flex justify-between items-center mt-auto">
-                                    <button 
+                                    <button
                                         onClick={() => startSession(tool.id as FlowSessionType)}
                                         className={`bg-neuro-${tool.color} hover:brightness-110 ${tool.btnText || 'text-white'} px-6 py-3 rounded-lg text-xs font-bold transition-transform active:scale-95 w-full shadow-[0_0_15px_rgba(0,0,0,0.3)] tracking-wider uppercase border border-white/10`}
                                     >
@@ -235,14 +235,14 @@ export const FlowModule: React.FC<FlowModuleProps> = ({ onSessionComplete }) => 
                             </div>
                         </div>
                     ))}
-                    
+
                     {/* Lab Section Inline */}
                     <div className="glass p-5 rounded-xl border border-dashed border-slate-700 flex flex-col justify-between">
                         <div>
                             <h3 className="text-white font-bold mb-4 flex items-center gap-2">
-                                 ⚗️ Laboratorio
+                                ⚗️ Laboratorio
                             </h3>
-                             <div className="grid grid-cols-1 gap-2 mb-4">
+                            <div className="grid grid-cols-1 gap-2 mb-4">
                                 {PRESETS.map((preset, idx) => (
                                     <div key={idx} className="bg-slate-900/30 border border-slate-800 rounded mb-2 overflow-hidden">
                                         <button
@@ -275,11 +275,11 @@ export const FlowModule: React.FC<FlowModuleProps> = ({ onSessionComplete }) => 
                         <div key={idx} className="glass p-6 rounded-xl border-l-4 border-white/20">
                             <h3 className="text-xl font-bold text-white mb-1">{routine.title}</h3>
                             <p className="text-base text-slate-400 mb-4">{routine.desc}</p>
-                            
+
                             <div className="flex flex-col gap-2 relative">
                                 {/* Connector Line */}
                                 <div className="absolute left-[15px] top-4 bottom-4 w-0.5 bg-slate-800 -z-10"></div>
-                                
+
                                 {routine.steps.map((stepId, stepIdx) => {
                                     const tool = TOOLS.find(t => t.id === stepId);
                                     if (!tool) return null;
@@ -292,7 +292,7 @@ export const FlowModule: React.FC<FlowModuleProps> = ({ onSessionComplete }) => 
                                                 <h4 className="font-bold text-slate-200 text-sm">{tool.title}</h4>
                                                 <span className="text-[10px] text-slate-500">{tool.time}</span>
                                             </div>
-                                            <button 
+                                            <button
                                                 onClick={() => startSession(tool.id as FlowSessionType)}
                                                 className="px-4 py-1.5 bg-slate-800 hover:bg-white text-white hover:text-black rounded text-xs font-bold transition-colors"
                                             >
@@ -309,18 +309,18 @@ export const FlowModule: React.FC<FlowModuleProps> = ({ onSessionComplete }) => 
 
             {/* Settings Modal */}
             {editingTool && (
-                <SettingsModal 
-                    tool={editingTool} 
-                    onClose={() => setEditingTool(null)} 
-                    onSave={(newConfig) => startSession(editingTool.id as FlowSessionType, newConfig)} 
+                <SettingsModal
+                    tool={editingTool}
+                    onClose={() => setEditingTool(null)}
+                    onSave={(newConfig) => startSession(editingTool.id as FlowSessionType, newConfig)}
                 />
             )}
 
             {/* Diagnostic Modal */}
             {showDiagnostic && (
-                <NeuroDiagnostic 
-                    onRecommend={handleDiagnosticResult} 
-                    onClose={() => setShowDiagnostic(false)} 
+                <NeuroDiagnostic
+                    onRecommend={handleDiagnosticResult}
+                    onClose={() => setShowDiagnostic(false)}
                 />
             )}
         </div>

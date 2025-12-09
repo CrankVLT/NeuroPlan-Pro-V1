@@ -26,10 +26,10 @@ export interface KeyResult {
 export interface Goal {
     id: number;
     title: string; // El "Qué" se quiere lograr
-    status: 'active' | 'completed' | 'archived'; 
-    startDate?: string; 
-    endDate?: string;   
-    completedDate?: string; 
+    status: 'active' | 'completed' | 'archived';
+    startDate?: string;
+    endDate?: string;
+    completedDate?: string;
     keyResults: KeyResult[]; // El "Cómo" se va a medir (KRs)
 }
 
@@ -43,7 +43,7 @@ export interface PlanningData {
     month: PeriodData;
     quarter: PeriodData;
     settings: {
-        executionThreshold: number; 
+        executionThreshold: number;
     };
 }
 
@@ -56,11 +56,11 @@ export interface BreathingPattern {
     exhale: number;
     hold2: number;
     cycles: number;
-    double?: boolean; 
+    double?: boolean;
 }
 
 export interface SessionConfig {
-    duration?: number; 
+    duration?: number;
     pattern?: BreathingPattern;
     color: string;
     title: string;
@@ -68,12 +68,12 @@ export interface SessionConfig {
 }
 
 export interface FlowState {
-    gaze: { duration: number }; 
+    gaze: { duration: number };
     active: BreathingPattern;
     tummo: BreathingPattern;
-    focus: { duration: number }; 
+    focus: { duration: number };
     calm: BreathingPattern;
-    nsdr: { duration: number }; 
+    nsdr: { duration: number; rate?: number; pitch?: number; };
     panoramic: { duration: number };
     custom: BreathingPattern;
 }
