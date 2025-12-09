@@ -1,9 +1,12 @@
 import { useRef, useCallback, useEffect } from 'react';
 
 export const useAudio = () => {
+    // Clean start of hook
     const ctxRef = useRef<AudioContext | null>(null);
     const gainRef = useRef<GainNode | null>(null);
     const bgNodeRef = useRef<AudioNode | null>(null);
+
+
     const isMutedRef = useRef(false);
     const volumeRef = useRef(0.5);
 
@@ -199,7 +202,7 @@ export const useAudio = () => {
         });
     }, []);
 
-    const stopBg = () => {
+    const stopNoise = useCallback(() => {
         if (bgNodeRef.current) {
             try {
                 if ((bgNodeRef.current as any).stop) (bgNodeRef.current as any).stop();
@@ -207,8 +210,24 @@ export const useAudio = () => {
             } catch (e) { console.warn("StopBg error", e); }
             bgNodeRef.current = null;
         }
+    }, []);
+
+    const stopBg = useCallback(() => {
+        stopNoise();
         if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-    };
+    }, [stopNoise]);
+
+    const pauseSpeech = useCallback(() => {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.pause();
+        }
+    }, []);
+
+    const resumeSpeech = useCallback(() => {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.resume();
+        }
+    }, []);
 
     // Cleanup on unmount - CRITICAL FIX
     useEffect(() => {
@@ -225,7 +244,7 @@ export const useAudio = () => {
                 gainRef.current = null;
             }
         }
-    }, []);
+    }, [stopBg]);
 
     return {
         init,
@@ -236,7 +255,10 @@ export const useAudio = () => {
         playBinaural,
         playBeep,
         speak,
+        pauseSpeech,
+        resumeSpeech,
         getVoices,
-        stopBg
+        stopBg,
+        stopNoise
     };
 };

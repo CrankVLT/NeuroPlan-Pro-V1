@@ -98,11 +98,14 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
         };
     }, []);
 
+    const isAtStart = isStopwatch ? elapsedTime === 0 : timeLeft === totalDuration;
+
     const handleStart = async () => {
         audio.init();
         if (!isStopwatch) setPhase('Preparado');
 
-        if (type === 'nsdr') {
+        // Only play intro if starting from the beginning
+        if (type === 'nsdr' && isAtStart) {
             setActiveSubtitle("Iniciando sesión de descanso profundo sin dormir.");
             await audio.speak("Iniciando sesión de descanso profundo sin dormir.", config.voiceURI, config.rate, config.pitch);
         }
@@ -113,6 +116,18 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
             setActiveSubtitle("Expande tu visión. Mira al horizonte. Disuelve tu enfoque.");
         }
     };
+
+    // Audio Pause/Resume Sync
+    useEffect(() => {
+        if (status === 'paused') {
+            audio.pauseSpeech();
+            if (audio.stopNoise) audio.stopNoise(); // Use stopNoise if available to avoid cancelling speech
+            else audio.stopBg(); // Fallback if type definition not updated yet
+        } else if (status === 'running') {
+            audio.resumeSpeech();
+            // Bg noise resumes via its own effect
+        }
+    }, [status]);
 
     // Timer Logic
     useEffect(() => {
@@ -406,9 +421,9 @@ export const ActiveSession: React.FC<{ type: FlowSessionType; config: any; onExi
                                 setStatus(s => s === 'running' || s === 'rest' ? 'paused' : (isResting ? 'rest' : 'running'));
                             }
                         }}
-                        className="bg-white text-black px-8 py-3 rounded-full font-bold text-sm hover:bg-slate-200 transition-colors shadow-lg"
+                        className="bg-white text-black px-8 py-3 rounded-full font-bold text-sm hover:bg-slate-200 transition-colors shadow-lg min-w-[140px]"
                     >
-                        {status === 'paused' ? 'INICIAR / CONTINUAR' : 'PAUSAR'}
+                        {status === 'paused' ? (isAtStart ? 'INICIAR' : 'CONTINUAR') : 'PAUSAR'}
                     </button>
                 ) : null}
 
